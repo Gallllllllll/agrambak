@@ -1,56 +1,70 @@
 <?php
-require "../config/database.php";
-require "../vendor/autoload.php";
-
-use Dompdf\Dompdf;
-
 session_start();
-if (!isset($_SESSION["user"])) {
-    die("Akses ditolak");
+require "../config/database.php";
+
+if (!isset($_SESSION['user'])) {
+    header("Location: login.php");
+    exit;
 }
 
-if (!isset($_GET['id'])) {
-    die("ID tidak ditemukan");
+$user = $_SESSION['user'];
+
+if (!isset($_GET['reservasi_id'])) {
+    die("Reservasi tidak ditemukan.");
 }
 
-$reservasi_id = $_GET['id'];
-$user_id = $_SESSION['user']['id'];
+$reservasi_id = $_GET['reservasi_id'];
 
+// Ambil data reservasi + pembayaran terakhir
 $stmt = $pdo->prepare("
-    SELECT 
-        r.*, j.tanggal, j.jam_berangkat, j.jam_tiba,
-        b.nama_bus
+    SELECT r.*, j.tanggal, j.jam_berangkat, j.jam_tiba, b.nama_bus, p.status AS pembayaran_status
     FROM reservasi r
     JOIN jadwal j ON r.jadwal_id = j.jadwal_id
     JOIN bus_armada b ON j.armada_id = b.armada_id
-    JOIN pembayaran p ON r.reservasi_id = p.reservasi_id
-    WHERE r.reservasi_id = ?
-      AND r.user_id = ?
-      AND r.status = 'dipesan'
-      AND p.status = 'paid'
+    LEFT JOIN pembayaran p ON r.reservasi_id = p.reservasi_id
+        AND p.payment_id = (
+            SELECT MAX(payment_id) FROM pembayaran WHERE reservasi_id = r.reservasi_id
+        )
+    WHERE r.reservasi_id = ? AND r.user_id = ?
 ");
-$stmt->execute([$reservasi_id, $user_id]);
-$data = $stmt->fetch();
+$stmt->execute([$reservasi_id, $user['id']]);
+$data = $stmt->fetch(PDO::FETCH_ASSOC);
 
-if (!$data) {
-    die("Tiket belum bisa dicetak");
-}
+if (!$data) die("Data tidak ditemukan.");
+if ($data['pembayaran_status'] !== 'berhasil') die("Pembayaran belum LUNAS, tiket tidak bisa dicetak.");
+?>
 
-$html = "
-<h2>TIKET BUS</h2>
-<hr>
-<p><b>Kode Booking:</b> {$data['kode_booking']}</p>
-<p><b>Bus:</b> {$data['nama_bus']}</p>
-<p><b>Tanggal:</b> {$data['tanggal']}</p>
-<p><b>Jam:</b> {$data['jam_berangkat']} - {$data['jam_tiba']}</p>
-<p><b>Jumlah Kursi:</b> {$data['jumlah_kursi']}</p>
-<p><b>Total:</b> Rp" . number_format($data['total_harga']) . "</p>
-<hr>
-<p><i>Tunjukkan tiket ini saat check-in</i></p>
-";
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Tiket Bus - <?= htmlspecialchars($data['kode_booking']) ?></title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        .tiket { border: 2px dashed #333; padding: 20px; width: 400px; margin: 50px auto; }
+        h2 { text-align: center; }
+        p { margin: 5px 0; }
+        .kode { font-size: 20px; font-weight: bold; text-align: center; }
+        button { margin-top: 20px; padding: 5px 10px; cursor: pointer; }
+    </style>
+</head>
+<body>
 
-$dompdf = new Dompdf();
-$dompdf->loadHtml($html);
-$dompdf->setPaper('A4', 'portrait');
-$dompdf->render();
-$dompdf->stream("tiket_{$data['kode_booking']}.pdf", ["Attachment" => false]);
+<div class="tiket">
+    <h2>Tiket Bus</h2>
+    <p class="kode">Kode Booking: <?= htmlspecialchars($data['kode_booking']) ?></p>
+    <hr>
+    <p><b>Nama Bus:</b> <?= htmlspecialchars($data['nama_bus']) ?></p>
+    <p><b>Tanggal:</b> <?= htmlspecialchars($data['tanggal']) ?></p>
+    <p><b>Jam Berangkat:</b> <?= htmlspecialchars($data['jam_berangkat']) ?></p>
+    <p><b>Jam Tiba:</b> <?= htmlspecialchars($data['jam_tiba']) ?></p>
+    <p><b>Jumlah Kursi:</b> <?= $data['jumlah_kursi'] ?></p>
+    <p><b>Total Harga:</b> Rp<?= number_format($data['total_harga']) ?></p>
+    <hr>
+    <p style="text-align:center;">Silakan tunjukkan tiket ini saat naik bus</p>
+    <div style="text-align:center;">
+        <button onclick="window.print()">🖨️ Cetak Tiket</button>
+    </div>
+</div>
+
+</body>
+</html>
