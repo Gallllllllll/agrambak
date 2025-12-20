@@ -2,6 +2,11 @@
 session_start();
 require "../config/database.php";
 
+function generateRefNumber() {
+    return 'TRX-' . date('Ymd') . '-' . strtoupper(substr(bin2hex(random_bytes(3)), 0, 6));
+}
+
+
 if (!isset($_SESSION["user"])) {
     header("Location: login.php");
     exit;
@@ -30,12 +35,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $nama_file = time() . "_" . basename($file['name']);
     move_uploaded_file($file['tmp_name'], "../uploads/" . $nama_file);
 
+    $jumlah = (int) $reservasi['total_harga'];
+
+
+
     // Insert ke tabel pembayaran
+    $ref_number = generateRefNumber();
+
     $stmt = $pdo->prepare("
-        INSERT INTO pembayaran (reservasi_id, metode, bukti_transfer, status, waktu_bayar)
-        VALUES (?, ?, ?, 'pending', NOW())
+        INSERT INTO pembayaran 
+        (reservasi_id, ref_number, metode, jumlah, bukti_transfer, status, waktu_bayar)
+        VALUES (?, ?, ?, ?, ?, 'pending', NOW())
     ");
-    $stmt->execute([$reservasi_id, $metode, $nama_file]);
+    $stmt->execute([
+        $reservasi_id,
+        $ref_number,
+        $metode,
+        $jumlah,
+        $nama_file
+    ]);
+
 
     header("Location: status_pemesanan.php");
     exit;
