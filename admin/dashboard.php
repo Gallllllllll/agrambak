@@ -28,6 +28,7 @@ $pendapatan = $pdo->query("SELECT SUM(total_harga) total FROM reservasi")->fetch
 
 <nav>
     <a href="dashboard.php">Home</a>
+    <a href="konfirmasi_refund.php">Konfirmasi Refund</a></li>
     <a href="konfirmasi_pembayaran.php">Konfirmasi Pembayaran</a>
     <a href="logout.php">Logout</a>
 </nav>
