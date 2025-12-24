@@ -81,7 +81,10 @@ $tipeBus = $pdo->query("SELECT * FROM armada_tipe")->fetchAll();
 <body>
 
 <h2>Manajemen Armada Bus</h2>
-<a href="../dashboard.php">← Kembali ke Dashboard</a>
+
+<a href="../dashboard.php">← Kembali ke Dashboard</a> |
+<a href="tambah.php" style="font-weight:bold;">+ Tambah Armada</a>
+
 
 <hr>
 

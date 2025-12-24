@@ -32,8 +32,9 @@ foreach ($data as $i => $b):
     <td><?= $b['kapasitas'] ?></td>
     <td><?= htmlspecialchars($b['deskripsi']) ?></td>
     <td>
-        <a href="edit.php?id=<?= $b['armada_id'] ?>">Edit</a> |
-        <a href="hapus.php?id=<?= $b['armada_id'] ?>" onclick="return confirm('Hapus bus ini?')">Hapus</a>
+        <a href='edit.php?id=<?= $b['armada_id'] ?>'>Edit</a>
+        <a href='hapus.php?id=<?= $b['armada_id'] ?>'
+        onclick="return confirm('Hapus data?')">Hapus</a>
     </td>
 </tr>
 <?php endforeach; ?>
