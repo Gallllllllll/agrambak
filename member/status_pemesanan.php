@@ -145,25 +145,31 @@ $reservasi = $stmt->fetchAll(PDO::FETCH_ASSOC);
         </td>
         <td>
             <?php
-            switch ($r['refund_status']) {
-                case 'Menunggu':
-                    echo "<button class='status-pending'>PENDING REFUND</button>";
-                    break;
-                case 'Disetujui':
-                    echo "<button class='status-paid'>DISETUJUI</button>";
-                    break;
-                case 'Ditolak':
-                    echo "<button class='status-rejected'>DITOLAK</button>";
-                    break;
-                default:
-                    ?>
-                    <a href="ajukan_refund.php?reservasi_id=<?= $r['reservasi_id'] ?>">
-                        <button class="btn-refund">Ajukan Refund</button>
-                    </a>
-                    <?php
+            // Jika sudah check-in, tombol refund disable dengan warna abu-abu
+            if (!empty($r['waktu_checkin'])) {
+                echo "<button class='btn-refund' style='background-color:#7f8c8d;' disabled title='Sudah check-in, refund tidak bisa diajukan'>Ajukan Refund</button>";
+            } else {
+                switch ($r['refund_status']) {
+                    case 'Menunggu':
+                        echo "<button class='status-pending'>PENDING REFUND</button>";
+                        break;
+                    case 'Disetujui':
+                        echo "<button class='status-paid'>DISETUJUI</button>";
+                        break;
+                    case 'Ditolak':
+                        echo "<button class='status-rejected'>DITOLAK</button>";
+                        break;
+                    default:
+                        ?>
+                        <a href="ajukan_refund.php?reservasi_id=<?= $r['reservasi_id'] ?>">
+                            <button class="btn-refund">Ajukan Refund</button>
+                        </a>
+                        <?php
+                }
             }
             ?>
         </td>
+
         <td>
             <a href="detail_reservasi.php?reservasi_id=<?= $r['reservasi_id'] ?>">
                 <button style="background-color:#007bff;">Detail</button>
