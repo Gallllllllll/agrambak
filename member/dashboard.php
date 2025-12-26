@@ -48,6 +48,9 @@ $terminals = $pdo->query("
 <nav>
     <a href="dashboard.php">Dashboard</a>
     <a href="../auth/logout.php">Logout</a>
+    <a href="akun/index.php">Profil</a>
+    <a href="status_pemesanan.php">Status</a>
+    <a href="dashboard_checkin.php">Check-In Penumpang</a>
 </nav>
 
 <div class="container">

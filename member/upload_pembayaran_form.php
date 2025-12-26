@@ -45,7 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt = $pdo->prepare("
         INSERT INTO pembayaran 
         (reservasi_id, ref_number, metode, jumlah, bukti_transfer, status, waktu_bayar)
-        VALUES (?, ?, ?, ?, ?, 'pending', NOW())
+        VALUES (?, ?, ?, ?, ?, 'berhasil', NOW())
     ");
     $stmt->execute([
         $reservasi_id,

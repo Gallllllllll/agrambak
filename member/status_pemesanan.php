@@ -3,22 +3,59 @@ session_start();
 require "../config/database.php";
 
 if (!isset($_SESSION["user"])) {
-    header("Location: login.php");
+    header("Location: dashboard.php");
     exit;
 }
 
 $user = $_SESSION["user"];
+$message = '';
 
-// Ambil semua reservasi + status pembayaran terakhir + status refund
+// Proses Check-In
+if (isset($_POST['checkin_reservasi_id'])) {
+    $rid = $_POST['checkin_reservasi_id'];
+
+    // Ambil reservasi & waktu_checkin + jadwal_id
+    $stmt = $pdo->prepare("SELECT jadwal_id, waktu_checkin FROM reservasi WHERE reservasi_id=? AND user_id=?");
+    $stmt->execute([$rid, $user['id']]);
+    $res = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$res) {
+        $message = "Reservasi tidak ditemukan.";
+    } elseif (!empty($res['waktu_checkin'])) {
+        $message = "Reservasi sudah check-in.";
+    } else {
+        $pdo->beginTransaction();
+
+        // Update waktu_checkin di tabel reservasi
+        $stmt = $pdo->prepare("UPDATE reservasi SET waktu_checkin=NOW() WHERE reservasi_id=?");
+        $stmt->execute([$rid]);
+
+        // Ambil semua kursi yang dipesan (penumpang_id = user id)
+        $stmt = $pdo->prepare("SELECT nomor_kursi FROM seat_booking WHERE jadwal_id=? AND penumpang_id=?");
+        $stmt->execute([$res['jadwal_id'], $user['id']]);
+        $kursi = $stmt->fetchAll(PDO::FETCH_COLUMN);
+
+        // Update status kursi menjadi terisi
+        $stmt = $pdo->prepare("UPDATE seat_booking SET status='terisi' WHERE jadwal_id=? AND nomor_kursi=?");
+        foreach ($kursi as $k) {
+            $stmt->execute([$res['jadwal_id'], $k]);
+        }
+
+        $pdo->commit();
+        $message = "Check-In berhasil!";
+    }
+}
+
+// Ambil semua reservasi + status pembayaran + refund
 $stmt = $pdo->prepare("
     SELECT 
         r.reservasi_id,
+        r.jadwal_id,
         r.kode_booking,
         r.jumlah_kursi,
         r.total_harga,
-        r.status AS reservasi_status,
+        r.waktu_checkin,
         p.status AS pembayaran_status,
-        p.payment_id,
         b.status AS refund_status
     FROM reservasi r
     LEFT JOIN pembayaran p ON p.reservasi_id = r.reservasi_id
@@ -44,6 +81,7 @@ $reservasi = $stmt->fetchAll(PDO::FETCH_ASSOC);
         .status-pending { background-color: orange; }
         .status-rejected { background-color: red; }
         .status-belum { background-color: gray; }
+        .status-checkin { background-color: #3498db; }
         .btn-refund { background-color: #f39c12; }
         a { text-decoration: none; }
     </style>
@@ -53,6 +91,10 @@ $reservasi = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <h2>Status Pemesanan</h2>
 <a href="dashboard.php">← Kembali ke Dashboard</a>
 <br><br>
+
+<?php if ($message): ?>
+    <p><strong><?= htmlspecialchars($message) ?></strong></p>
+<?php endif; ?>
 
 <table>
 <tr>
@@ -92,6 +134,12 @@ $reservasi = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     $class = 'status-belum';
                     $text = 'BELUM BAYAR';
             }
+
+            // Cek waktu_checkin
+            if (!empty($r['waktu_checkin'])) {
+                $class = 'status-checkin';
+                $text = 'SUDAH CHECK-IN';
+            }
             ?>
             <button class="<?= $class ?>"><?= $text ?></button>
         </td>
@@ -116,13 +164,18 @@ $reservasi = $stmt->fetchAll(PDO::FETCH_ASSOC);
             }
             ?>
         </td>
-
-
-
         <td>
             <a href="detail_reservasi.php?reservasi_id=<?= $r['reservasi_id'] ?>">
                 <button style="background-color:#007bff;">Detail</button>
             </a>
+
+            <?php if (empty($r['waktu_checkin'])): ?>
+                <!-- Form Check-In -->
+                <form method="POST" style="display:inline;">
+                    <input type="hidden" name="checkin_reservasi_id" value="<?= $r['reservasi_id'] ?>">
+                    <button type="submit" style="background-color:#3498db;">Check-In</button>
+                </form>
+            <?php endif; ?>
         </td>
     </tr>
     <?php endforeach; ?>

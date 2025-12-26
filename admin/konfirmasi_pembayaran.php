@@ -29,7 +29,7 @@ $stmt = $pdo->query("
            p.payment_id, p.metode, p.bukti_transfer, p.waktu_bayar
     FROM reservasi r
     JOIN pembayaran p ON r.reservasi_id = p.reservasi_id
-    WHERE p.status = 'pending'
+    WHERE p.status = 'berhasil'
     ORDER BY p.waktu_bayar DESC
 ");
 $pembayaranPending = $stmt->fetchAll();

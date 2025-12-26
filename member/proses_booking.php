@@ -3,7 +3,7 @@ session_start();
 require "../config/database.php";
 
 if (!isset($_SESSION["user"])) {
-    header("Location: login.php");
+    header("Location: ../login.php");
     exit;
 }
 
@@ -22,7 +22,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     // Ambil harga dari jadwal
     $stmt = $pdo->prepare("SELECT harga FROM jadwal WHERE jadwal_id = ?");
     $stmt->execute([$jadwal_id]);
-    $jadwal = $stmt->fetch();
+    $jadwal = $stmt->fetch(PDO::FETCH_ASSOC);
     if (!$jadwal) die("Jadwal tidak ditemukan.");
 
     $total_harga = $jumlah_kursi * $jadwal['harga'];
@@ -30,29 +30,23 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     try {
         $pdo->beginTransaction();
 
-        // Insert ke reservasi
-        $stmt = $pdo->prepare("INSERT INTO reservasi (user_id, jadwal_id, kode_booking, jumlah_kursi, total_harga, status, waktu_pesan) VALUES (?, ?, ?, ?, ?, 'pending', NOW())");
-        $kode_booking = "BKS" . rand(1000,9999);
+        // Insert ke tabel reservasi
+        $kode_booking = "BKS" . rand(1000, 9999);
+        $stmt = $pdo->prepare("INSERT INTO reservasi (user_id, jadwal_id, kode_booking, jumlah_kursi, total_harga, status, waktu_pesan) VALUES (?, ?, ?, ?, ?, 'lunas', NOW())");
         $stmt->execute([$user['id'], $jadwal_id, $kode_booking, $jumlah_kursi, $total_harga]);
 
         $reservasi_id = $pdo->lastInsertId();
 
-        // Insert penumpang & seat_booking
+        // Insert seat_booking dengan penumpang_id NULL (nanti diisi di halaman data penumpang)
         foreach ($kursi as $seat) {
-            // Insert penumpang
-            $stmt = $pdo->prepare("INSERT INTO penumpang (reservasi_id, nama_penumpang, nomor_kursi) VALUES (?, ?, ?)");
-            $stmt->execute([$reservasi_id, "Penumpang $seat", $seat]);
-            $penumpang_id = $pdo->lastInsertId();
-
-            // Insert seat_booking
-            $stmt = $pdo->prepare("INSERT INTO seat_booking (jadwal_id, nomor_kursi, penumpang_id, status) VALUES (?, ?, ?, 'booked')");
-            $stmt->execute([$jadwal_id, $seat, $penumpang_id]);
+            $stmt = $pdo->prepare("INSERT INTO seat_booking (jadwal_id, nomor_kursi, penumpang_id, status) VALUES (?, ?, NULL, 'diblock')");
+            $stmt->execute([$jadwal_id, $seat]);
         }
 
         $pdo->commit();
 
-        // Redirect ke form upload pembayaran
-        header("Location: upload_pembayaran_form.php?reservasi_id=$reservasi_id");
+        // Redirect ke halaman isi data penumpang
+        header("Location: isi_data_penumpang.php?reservasi_id=$reservasi_id");
         exit;
 
     } catch (Exception $e) {

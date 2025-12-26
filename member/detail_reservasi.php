@@ -18,9 +18,14 @@ $stmt = $pdo->prepare("
     WHERE r.reservasi_id = ? AND r.user_id = ?
 ");
 $stmt->execute([$reservasi_id, $user['id']]);
-$data = $stmt->fetch();
+$data = $stmt->fetch(PDO::FETCH_ASSOC);
 
 if (!$data) die("Data tidak ditemukan");
+
+// Ambil data penumpang untuk reservasi ini
+$stmt2 = $pdo->prepare("SELECT * FROM penumpang WHERE reservasi_id = ?");
+$stmt2->execute([$reservasi_id]);
+$penumpang_list = $stmt2->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
 <!DOCTYPE html>
@@ -29,7 +34,8 @@ if (!$data) die("Data tidak ditemukan");
     <title>Detail Reservasi</title>
 </head>
 <body>
-<h2>Detail Reservasi - <?= $data['kode_booking'] ?></h2>
+<h2>Detail Reservasi - <?= htmlspecialchars($data['kode_booking']) ?></h2>
+<p><b>Reservasi ID:</b> <?= $data['reservasi_id'] ?></p>
 <a href="status_pemesanan.php">← Kembali</a>
 <br><br>
 
@@ -39,12 +45,28 @@ if (!$data) die("Data tidak ditemukan");
 <p><b>Metode:</b> <?= $data['metode'] ?? '-' ?></p>
 <p><b>Bukti Transfer:</b> 
     <?php if ($data['bukti_transfer']): ?>
-        <a href="../uploads/<?= $data['bukti_transfer'] ?>" target="_blank">Lihat</a>
+        <a href="../uploads/<?= htmlspecialchars($data['bukti_transfer']) ?>" target="_blank">Lihat</a>
     <?php else: ?>
         -
     <?php endif; ?>
 </p>
 <p><b>Waktu Bayar:</b> <?= $data['waktu_bayar'] ?? '-' ?></p>
+
+<h3>Daftar Penumpang</h3>
+<table border="1" cellpadding="5" cellspacing="0">
+    <tr>
+        <th>No</th>
+        <th>Nama Penumpang</th>
+        <th>Nomor Kursi</th>
+    </tr>
+    <?php foreach ($penumpang_list as $index => $penumpang): ?>
+        <tr>
+            <td><?= $index + 1 ?></td>
+            <td><?= htmlspecialchars($penumpang['nama_penumpang']) ?></td>
+            <td><?= htmlspecialchars($penumpang['nomor_kursi']) ?></td>
+        </tr>
+    <?php endforeach; ?>
+</table>
 
 <?php if ($data['pembayaran_status'] === 'berhasil'): ?>
     <a href="cetak_tiket.php?reservasi_id=<?= $data['reservasi_id'] ?>" target="_blank">
