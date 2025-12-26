@@ -8,8 +8,8 @@ if (!isset($_SESSION['user'])) {
 }
 
 // Tentukan user_id dari session
-if (is_array($_SESSION['user']) && isset($_SESSION['user']['user_id'])) {
-    $user_id = $_SESSION['user']['user_id'];
+if (is_array($_SESSION['user']) && isset($_SESSION['user']['id'])) {
+    $user_id = $_SESSION['user']['id'];
 } elseif (is_numeric($_SESSION['user'])) {
     $user_id = $_SESSION['user'];
 } else {
@@ -28,7 +28,6 @@ if (!$user) {
 }
 ?>
 
-
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -39,6 +38,7 @@ if (!$user) {
         .profile { max-width: 400px; margin: auto; }
         .profile img { max-width: 150px; display: block; margin-bottom: 10px; }
         .profile div { margin-bottom: 8px; }
+        .btn-edit { display: inline-block; padding: 5px 10px; background:#3498db; color:#fff; text-decoration:none; border-radius:5px; }
     </style>
 </head>
 <body>
@@ -56,11 +56,8 @@ if (!$user) {
         <div><strong>Telepon:</strong> <?= htmlspecialchars($user['telepon'] ?? '-') ?></div>
         <div><strong>Alamat:</strong> <?= htmlspecialchars($user['alamat'] ?? '-') ?></div>
 
-        <form action="upload_foto.php" method="post" enctype="multipart/form-data">
-            <label for="foto">Unggah Foto:</label><br>
-            <input type="file" name="foto" id="foto" accept="image/*" required><br><br>
-            <button type="submit">Simpan Foto</button>
-        </form>
+        <!-- Hanya tombol edit -->
+        <a href="edit.php" class="btn-edit">Edit Profil</a>
     </div>
 </body>
 </html>
