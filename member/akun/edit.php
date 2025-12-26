@@ -31,7 +31,6 @@ if (!$user) {
 $uploadsDir = '../../uploads/';
 
 // Proses form submit
-$message = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $nama = $_POST['nama'] ?? '';
     $email = $_POST['email'] ?? '';
@@ -58,11 +57,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt = $pdo->prepare("UPDATE users SET nama = ?, email = ?, telepon = ?, alamat = ?, foto = ? WHERE user_id = ?");
     $stmt->execute([$nama, $email, $telepon, $alamat, $fotoDb, $user_id]);
 
-    $message = 'Profil berhasil diperbarui.';
-    // Refresh data
-    $stmt = $pdo->prepare("SELECT * FROM users WHERE user_id = ?");
-    $stmt->execute([$user_id]);
-    $user = $stmt->fetch(PDO::FETCH_ASSOC);
+    // Redirect ke index.php setelah update
+    header("Location: index.php");
+    exit;
 }
 ?>
 
@@ -77,7 +74,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .profile img { max-width: 150px; display: block; margin-bottom: 10px; border-radius: 5px; }
         .profile div { margin-bottom: 8px; }
         .btn-save { display: inline-block; padding: 5px 10px; background:#27ae60; color:#fff; text-decoration:none; border-radius:5px; border:none; cursor:pointer; }
-        .message { color: green; margin-bottom: 10px; }
     </style>
 </head>
 <body>
@@ -93,10 +89,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         ?>
         <img src="<?= htmlspecialchars($fotoToShow) ?>" alt="Foto Profil">
-
-        <?php if ($message): ?>
-            <div class="message"><?= htmlspecialchars($message) ?></div>
-        <?php endif; ?>
 
         <form method="post" enctype="multipart/form-data">
             <div>
