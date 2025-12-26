@@ -71,6 +71,7 @@ $totalPendapatan = $pdo->query("
     <a href="users/index.php">CRUD User</a>
     <a href="armada/index.php">CRUD Armada</a>
     <a href="rute/index.php">CRUD Rute</a>
+    <a href="jadwal/index.php">CRUD Jadwal</a>
     <a href="konfirmasi_pembayaran.php">Konfirmasi Pembayaran</a>
     <a href="konfirmasi_refund.php">Konfirmasi Refund</a>
     <a href="../auth/logout.php">Logout</a>
