@@ -2,29 +2,25 @@
 session_start();
 require "../../config/database.php";
 
-if (!isset($_SESSION['user'])) {
-    echo "User belum login.";
+// Cek login
+if (!isset($_SESSION['user']) || !is_array($_SESSION['user'])) {
+    header("Location: ../../login.php");
     exit;
 }
 
-// Tentukan user_id dari session
-if (is_array($_SESSION['user']) && isset($_SESSION['user']['id'])) {
-    $user_id = $_SESSION['user']['id'];
-} elseif (is_numeric($_SESSION['user'])) {
-    $user_id = $_SESSION['user'];
-} else {
-    echo "User tidak ditemukan.";
-    exit;
+// Ambil user_id dari session
+$user_id = $_SESSION['user']['user_id'] ?? null;
+if (!$user_id) {
+    die("User tidak ditemukan di session.");
 }
 
-// Ambil data user
+// Ambil data user dari database
 $stmt = $pdo->prepare("SELECT * FROM users WHERE user_id = ?");
 $stmt->execute([$user_id]);
 $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
 if (!$user) {
-    echo "User tidak ditemukan.";
-    exit;
+    die("User tidak ditemukan di database.");
 }
 ?>
 
@@ -42,22 +38,21 @@ if (!$user) {
     </style>
 </head>
 <body>
-    <div class="profile">
-        <h2>Profil Saya</h2>
+<div class="profile">
+    <h2>Profil Saya</h2>
 
-        <?php if (!empty($user['foto'])): ?>
-            <img src="../../uploads/<?= htmlspecialchars($user['foto']) ?>" alt="Foto Profil">
-        <?php else: ?>
-            <div>Belum ada foto</div>
-        <?php endif; ?>
+    <?php if (!empty($user['foto'])): ?>
+        <img src="../../uploads/<?= htmlspecialchars($user['foto']) ?>" alt="Foto Profil">
+    <?php else: ?>
+        <div>Belum ada foto</div>
+    <?php endif; ?>
 
-        <div><strong>Nama:</strong> <?= htmlspecialchars($user['nama']) ?></div>
-        <div><strong>Email:</strong> <?= htmlspecialchars($user['email']) ?></div>
-        <div><strong>Telepon:</strong> <?= htmlspecialchars($user['telepon'] ?? '-') ?></div>
-        <div><strong>Alamat:</strong> <?= htmlspecialchars($user['alamat'] ?? '-') ?></div>
+    <div><strong>Nama:</strong> <?= htmlspecialchars($user['nama']) ?></div>
+    <div><strong>Email:</strong> <?= htmlspecialchars($user['email']) ?></div>
+    <div><strong>Telepon:</strong> <?= htmlspecialchars($user['telepon'] ?? '-') ?></div>
+    <div><strong>Alamat:</strong> <?= htmlspecialchars($user['alamat'] ?? '-') ?></div>
 
-        <!-- Hanya tombol edit -->
-        <a href="edit.php" class="btn-edit">Edit Profil</a>
-    </div>
+    <a href="edit.php" class="btn-edit">Edit Profil</a>
+</div>
 </body>
 </html>

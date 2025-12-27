@@ -2,29 +2,24 @@
 session_start();
 require "../../config/database.php";
 
-if (!isset($_SESSION['user'])) {
-    echo "User belum login.";
+// Cek login
+if (!isset($_SESSION['user']) || !is_array($_SESSION['user'])) {
+    header("Location: ../../login.php");
     exit;
 }
 
-// Tentukan user_id dari session
-if (is_array($_SESSION['user']) && isset($_SESSION['user']['id'])) {
-    $user_id = $_SESSION['user']['id'];
-} elseif (is_numeric($_SESSION['user'])) {
-    $user_id = $_SESSION['user'];
-} else {
-    echo "User tidak ditemukan.";
-    exit;
+// Ambil user_id dari session
+$user_id = $_SESSION['user']['user_id'] ?? null;
+if (!$user_id) {
+    die("User tidak ditemukan di session.");
 }
 
 // Ambil data user
 $stmt = $pdo->prepare("SELECT * FROM users WHERE user_id = ?");
 $stmt->execute([$user_id]);
 $user = $stmt->fetch(PDO::FETCH_ASSOC);
-
 if (!$user) {
-    echo "User tidak ditemukan.";
-    exit;
+    die("User tidak ditemukan di database.");
 }
 
 // Folder untuk upload
@@ -32,29 +27,36 @@ $uploadsDir = '../../uploads/';
 
 // Proses form submit
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $nama = $_POST['nama'] ?? '';
-    $email = $_POST['email'] ?? '';
+    $nama    = $_POST['nama'] ?? '';
+    $email   = $_POST['email'] ?? '';
     $telepon = $_POST['telepon'] ?? '';
-    $alamat = $_POST['alamat'] ?? '';
+    $alamat  = $_POST['alamat'] ?? '';
 
     // Handle upload foto
+    $fotoDb = $user['foto']; // default tetap foto lama
     if (isset($_FILES['foto']) && $_FILES['foto']['error'] === UPLOAD_ERR_OK) {
-        $fileTmp = $_FILES['foto']['tmp_name'];
-        $fileName = basename($_FILES['foto']['name']);
+        $fileTmp  = $_FILES['foto']['tmp_name'];
+        $fileExt  = pathinfo($_FILES['foto']['name'], PATHINFO_EXTENSION);
+        $fileName = 'user_' . $user_id . '_' . time() . '.' . $fileExt; // nama unik
         $targetPath = $uploadsDir . $fileName;
 
         if (move_uploaded_file($fileTmp, $targetPath)) {
             $fotoDb = $fileName;
-        } else {
-            $fotoDb = $user['foto'];
         }
-    } else {
-        $fotoDb = $user['foto'];
     }
 
     // Update database
-    $stmt = $pdo->prepare("UPDATE users SET nama = ?, email = ?, telepon = ?, alamat = ?, foto = ? WHERE user_id = ?");
+    $stmt = $pdo->prepare("
+        UPDATE users 
+        SET nama = ?, email = ?, telepon = ?, alamat = ?, foto = ? 
+        WHERE user_id = ?
+    ");
     $stmt->execute([$nama, $email, $telepon, $alamat, $fotoDb, $user_id]);
+
+    // Update session agar nama & foto terbaru tampil di sidebar
+    $_SESSION['user']['nama']  = $nama;
+    $_SESSION['user']['email'] = $email;
+    $_SESSION['user']['foto']  = $fotoDb;
 
     // Redirect ke index.php
     header("Location: index.php");
@@ -69,6 +71,7 @@ if (!empty($user['foto']) && file_exists($fotoPath)) {
     $fotoToShow = $uploadsDir . 'default.png';
 }
 ?>
+
 
 <!DOCTYPE html>
 <html lang="id">

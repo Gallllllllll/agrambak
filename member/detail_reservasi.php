@@ -17,7 +17,7 @@ $stmt = $pdo->prepare("
     LEFT JOIN pembayaran p ON r.reservasi_id = p.reservasi_id
     WHERE r.reservasi_id = ? AND r.user_id = ?
 ");
-$stmt->execute([$reservasi_id, $user['id']]);
+$stmt->execute([$reservasi_id, $user['user_id']]);
 $data = $stmt->fetch(PDO::FETCH_ASSOC);
 
 if (!$data) die("Data tidak ditemukan");
