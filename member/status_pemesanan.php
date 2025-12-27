@@ -150,6 +150,18 @@ body {
     flex-wrap: wrap;
 }
 
+.ticket-status {
+    display: flex;
+    align-items: center;
+    gap: 8px; /* jarak antara badge dan logo */
+}
+
+.badge-logo-right {
+    height: 20px; /* ukuran logo */
+    width: auto;
+}
+
+
 .btn {
     border: none;
     padding: 8px 14px;
@@ -227,8 +239,12 @@ if (!empty($r['waktu_checkin'])) {
             <small>Kode Pemesanan</small>
             <h3><?= htmlspecialchars($r['kode_booking']) ?></h3>
         </div>
-        <span class="badge <?= $badgeClass ?>"><?= $badgeText ?></span>
+        <div class="ticket-status">
+            <span class="badge <?= $badgeClass ?>"><?= $badgeText ?></span>
+            <img src="../assets/logo-tranzio.png" alt="Tranzio" class="badge-logo-right">
+        </div>
     </div>
+
 
     <div class="ticket-body">
         <p><strong>Jumlah Kursi:</strong> <?= $r['jumlah_kursi'] ?></p>
