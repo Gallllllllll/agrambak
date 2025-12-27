@@ -1,0 +1,461 @@
+/* ===============================
+   RESET & GLOBAL
+================================ */
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    background: #e9eef6;
+    color: #2f3e55;
+}
+
+section {
+    margin-bottom: 100px;
+}
+
+/* ===============================
+   NAVBAR
+================================ */
+.navbar {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+
+    display: flex;
+    align-items: center;
+
+    padding: 7px 40px;
+    background: #dfe7f3;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+}
+
+/* LOGO */
+.logo img {
+    height: 50px;
+}
+
+/* DESKTOP MENU */
+.desktop-menu {
+    list-style: none;
+    display: flex;
+    gap: 30px;
+    margin-left: auto;
+}
+
+.desktop-menu a {
+    text-decoration: none;
+    color: #344c6d;
+    font-weight: 500;
+}
+
+/* PROFILE */
+.desktop-profile img {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    cursor: pointer;
+    margin-left: 20px;
+}
+
+/* ===============================
+   BURGER (KANAN)
+================================ */
+.burger {
+    display: none;
+    flex-direction: column;
+    cursor: pointer;
+    gap: 5px;
+    margin-left: 20px;
+}
+
+.burger span {
+    width: 26px;
+    height: 3px;
+    background: #344c6d;
+    border-radius: 2px;
+}
+
+/* ===============================
+   SIDE MENU (DARI KANAN)
+================================ */
+.side-menu {
+    position: fixed;
+    top: 0;
+    right: -25%;
+    width: 25%;
+    height: 100vh;
+
+    background: #1f2f47;
+    color: #ffffff;
+
+    padding: 30px 20px;
+    transition: right 0.3s ease;
+    z-index: 2000;
+}
+
+.side-menu.active {
+    right: 0;
+}
+
+.side-profile {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.side-profile img {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    margin-bottom: 10px;
+}
+
+.side-menu ul {
+    list-style: none;
+    padding: 0;
+}
+
+.side-menu ul li {
+    margin-bottom: 18px;
+}
+
+.side-menu ul li a {
+    color: #ffffff;
+    text-decoration: none;
+    font-size: 16px;
+}
+
+/* ===============================
+   OVERLAY
+================================ */
+.overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    display: none;
+    z-index: 1500;
+}
+
+.overlay.active {
+    display: block;
+}
+
+/* ===============================
+   RESPONSIVE <= 800px
+================================ */
+@media (max-width: 800px) {
+    .desktop-menu,
+    .desktop-profile {
+        display: none;
+    }
+
+    .burger {
+        display: flex;
+        margin-left: auto;
+    }
+
+    .side-menu {
+        width: 75%;
+        right: -75%;
+    }
+}
+
+
+
+/* ===============================
+   HERO RESPONSIVE
+================================ */
+.hero {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 7;      /* RESPONSIVE HEIGHT */
+    overflow: hidden;
+    background: #cfd8e6;
+}
+
+.hero .slides img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;         /* RESPONSIVE IMAGE */
+    opacity: 0;
+    transition: opacity 1s ease;
+}
+
+.hero .slides img.active {
+    opacity: 1;
+}
+
+.hero .dots {
+    position: absolute;
+    bottom: 15px;
+    width: 100%;
+    text-align: center;
+}
+
+.hero .dots span {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    margin: 0 4px;
+    background: #cbd5e1;
+    border-radius: 50%;
+}
+
+.hero .dots span.active {
+    background: #344c6d;
+}
+
+/* ===============================
+   CARI TIKET
+================================ */
+.ticket-box {
+    width: 700px;
+    margin: -70px auto 70px;
+    background: #ffffff;
+    padding: 15px;
+    border-radius: 18px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+}
+
+.ticket-box h3 {
+    margin: 0 0 15px;
+    color: #344c6d;
+}
+
+/* SAMAKAN SEMUA INPUT */
+.ticket-box select,
+.ticket-box input[type="date"],
+.ticket-box button {
+    width: 100%;
+    height: 45px;
+    padding: 0 15px;
+    margin-top: 12px;
+
+    border-radius: 25px;
+    border: none;
+    background: #e5e5e5;
+
+    font-size: 14px;
+    outline: none;
+}
+
+/* SELECT ICON */
+.ticket-box select {
+    appearance: none;
+    background-image: url('../icon/arrow-down.svg');
+    background-repeat: no-repeat;
+    background-position: right 15px center;
+}
+
+/* BUTTON */
+.ticket-box button {
+    margin-top: 18px;
+    background: #bcd0ee;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.ticket-box button:hover {
+    background: #a9c2e8;
+}
+
+/* ===============================
+   BERITA TERBARU
+================================ */
+.blog-news {
+    padding: 50px;
+    background: #2f3e55;
+}
+
+/* header */
+.news-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.news-header h2 {
+    font-size: 2.4rem;
+    color: #839ec7;
+}
+
+/* tombol */
+.news-nav {
+    display: flex;
+    gap: 10px;
+}
+
+.news-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 3px solid #1f2f47;
+    background: #859cbd;
+    font-size: 22px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.news-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+/* container scroll */
+.news-container {
+    overflow-x: hidden;
+}
+
+/* track */
+.news-track {
+    display: flex;
+    gap: 15px;
+    padding-top: 10px;
+}
+
+/* card */
+.news-card {
+    flex: 0 0 400px;
+    border-radius: 16px;
+    overflow: hidden;
+    background: #000;
+    position: relative;
+}
+
+.news-card:hover {
+    transform: translateY(-8px);
+}
+
+/* gambar */
+.news-card img {
+    width: 100%;
+    height: 400px;
+    object-fit: cover;
+    display: block;
+}
+
+/* judul overlay */
+.news-card h3 {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 18px;
+    margin: 0;
+    color: #fff;
+    font-size: 1.1rem;
+    background: linear-gradient(to top, rgba(0,0,0,0.85), transparent);
+}
+
+
+/* ===============================
+   FOOTER
+================================ */
+.footer {
+    background: #dfe7f3;
+    
+}
+
+.footer-top {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 30px;
+    padding: 25px 70px;
+}
+
+.footer-brand img {
+    height: 80px;
+    width: auto;
+}
+
+.footer-brand p {
+    font-weight: bold;
+    margin: 10px 0 5px;
+}
+
+.footer-menu {
+    margin-top: 25px;
+}
+
+.footer-menu a {
+    display: block;
+    text-decoration:double;
+    color: #344c6d;
+    margin-bottom: 6px;
+}
+
+/* ===============================
+   FOOTER ICON & SOCIAL
+================================ */
+
+.footer-contact i,
+.footer-social i {
+    margin-right: 8px;
+    color: #344c6d;
+    width: 18px;
+    text-align: center;
+}
+
+.footer-contact p {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* media sosial */
+.footer-social, .footer-contact {
+    padding: 10px;
+}
+
+.footer-social h4 {
+    margin-bottom: 10px;
+}
+
+.footer-social .social-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    color: #344c6d;
+    text-decoration: none;
+    margin-bottom: 8px;
+    transition: 0.2s;
+}
+
+.footer-social .social-item:hover {
+    color: #1d3557;
+}
+
+/* ukuran icon sosmed */
+.footer-social i {
+    font-size: 18px;
+}
+
+
+.footer-bottom {
+    margin-top: 30px;
+    text-align: center;
+    padding: 12px;
+    background: #344c6d;
+    color: #ffffff;
+    margin-bottom: 20px;
+}
+
+/* ===============================
+   RESPONSIVE (OPSIONAL)
+================================ */
+@media (max-width: 768px) {
+    .ticket-box {
+        width: 90%;
+        margin-top: -40px;
+    }
+
+    .footer-top {
+        flex-direction: column;
+    }
+}
