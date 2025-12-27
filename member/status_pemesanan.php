@@ -70,6 +70,7 @@ $reservasi = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Tiket Saya</title>
+<link rel="stylesheet" href="../aset/css/nav.css">
 
 <style>
 * { box-sizing: border-box; }
@@ -200,7 +201,7 @@ body {
 
 <body>
 
-<?php include "../partials/navbar.php"; ?>
+<?php include __DIR__ . "/nav.php"; ?>
 
 <div class="container">
 
