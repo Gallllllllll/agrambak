@@ -8,15 +8,16 @@ if (!isset($_SESSION["user"])) {
 }
 
 $user = $_SESSION["user"];
-$message = '';
+$message = "";
 
-// Proses Check-In
+/* =====================
+   PROSES CHECK-IN
+===================== */
 if (isset($_POST['checkin_reservasi_id'])) {
     $rid = $_POST['checkin_reservasi_id'];
 
-    // Ambil reservasi & waktu_checkin + jadwal_id
     $stmt = $pdo->prepare("SELECT jadwal_id, waktu_checkin FROM reservasi WHERE reservasi_id=? AND user_id=?");
-    $stmt->execute([$rid, $user['id']]);
+    $stmt->execute([$rid, $user['user_id']]);
     $res = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$res) {
@@ -26,40 +27,35 @@ if (isset($_POST['checkin_reservasi_id'])) {
     } else {
         $pdo->beginTransaction();
 
-        // Update waktu_checkin di tabel reservasi
-        $stmt = $pdo->prepare("UPDATE reservasi SET waktu_checkin=NOW() WHERE reservasi_id=?");
-        $stmt->execute([$rid]);
+        $pdo->prepare("UPDATE reservasi SET waktu_checkin=NOW() WHERE reservasi_id=?")
+            ->execute([$rid]);
 
-        // Ambil semua kursi yang dipesan (penumpang_id = user id)
         $stmt = $pdo->prepare("SELECT nomor_kursi FROM seat_booking WHERE jadwal_id=? AND penumpang_id=?");
-        $stmt->execute([$res['jadwal_id'], $user['id']]);
+        $stmt->execute([$res['jadwal_id'], $user['user_id']]);
         $kursi = $stmt->fetchAll(PDO::FETCH_COLUMN);
 
-        // Update status kursi menjadi terisi
         $stmt = $pdo->prepare("UPDATE seat_booking SET status='terisi' WHERE jadwal_id=? AND nomor_kursi=?");
         foreach ($kursi as $k) {
             $stmt->execute([$res['jadwal_id'], $k]);
         }
 
         $pdo->commit();
-        $message = "Check-In berhasil!";
+        $message = "Check-in berhasil.";
     }
 }
 
-// Ambil semua reservasi + status pembayaran + refund
+/* =====================
+   AMBIL DATA RESERVASI
+===================== */
 $stmt = $pdo->prepare("
-    SELECT 
-        r.reservasi_id,
-        r.jadwal_id,
-        r.kode_booking,
-        r.jumlah_kursi,
-        r.total_harga,
-        r.waktu_checkin,
-        p.status AS pembayaran_status,
-        b.status AS refund_status
+    SELECT r.*, 
+           p.status AS pembayaran_status,
+           b.status AS refund_status
     FROM reservasi r
     LEFT JOIN pembayaran p ON p.reservasi_id = r.reservasi_id
-        AND p.waktu_bayar = (SELECT MAX(waktu_bayar) FROM pembayaran WHERE reservasi_id = r.reservasi_id)
+        AND p.waktu_bayar = (
+            SELECT MAX(waktu_bayar) FROM pembayaran WHERE reservasi_id = r.reservasi_id
+        )
     LEFT JOIN pembatalan b ON b.reservasi_id = r.reservasi_id
     WHERE r.user_id = ?
     ORDER BY r.waktu_pesan DESC
@@ -69,128 +65,217 @@ $reservasi = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
-    <title>Status Pemesanan</title>
-    <style>
-        table { border-collapse: collapse; width: 100%; }
-        th, td { border: 1px solid #333; padding: 8px; text-align: center; }
-        th { background: #f0f0f0; }
-        button { padding: 5px 10px; margin: 2px; cursor: pointer; border: none; border-radius: 5px; color: #fff; }
-        .status-paid { background-color: green; }
-        .status-pending { background-color: orange; }
-        .status-rejected { background-color: red; }
-        .status-belum { background-color: gray; }
-        .status-checkin { background-color: #3498db; }
-        .btn-refund { background-color: #f39c12; }
-        a { text-decoration: none; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tiket Saya</title>
+
+<style>
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background: #2f405a;
+    color: #333;
+}
+
+/* ===== CONTAINER ===== */
+.container {
+    max-width: 900px;
+    margin: auto;
+    padding: 20px;
+}
+
+/* ===== MESSAGE ===== */
+.alert {
+    background: #e3f2fd;
+    padding: 12px 16px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+
+/* ===== TICKET CARD ===== */
+.ticket-card {
+    background: #fff;
+    border-radius: 20px;
+    padding: 20px;
+    margin-bottom: 25px;
+    box-shadow: 0 10px 25px rgba(0,0,0,.15);
+}
+
+.ticket-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.ticket-header small {
+    color: #777;
+}
+
+.ticket-header h3 {
+    margin: 4px 0 0;
+    letter-spacing: 1px;
+}
+
+/* ===== BADGE ===== */
+.badge {
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: bold;
+    color: white;
+}
+.badge-paid { background: #6fcf97; }
+.badge-pending { background: #f2c94c; }
+.badge-unpaid { background: #eb5757; }
+.badge-checkin { background: #3498db; }
+
+/* ===== BODY ===== */
+.ticket-body {
+    margin-top: 15px;
+    font-size: 14px;
+}
+.ticket-body p {
+    margin: 6px 0;
+}
+
+/* ===== ACTIONS ===== */
+.ticket-actions {
+    margin-top: 15px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.ticket-status {
+    display: flex;
+    align-items: center;
+    gap: 8px; /* jarak antara badge dan logo */
+}
+
+.badge-logo-right {
+    height: 20px; /* ukuran logo */
+    width: auto;
+}
+
+
+.btn {
+    border: none;
+    padding: 8px 14px;
+    border-radius: 10px;
+    font-size: 13px;
+    color: #fff;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.btn-detail { background: #2d9cdb; }
+.btn-checkin { background: #27ae60; }
+.btn-refund { background: #f2994a; }
+.btn-disabled {
+    background: #bdbdbd;
+    cursor: not-allowed;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 600px) {
+    .ticket-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    .ticket-actions {
+        flex-direction: column;
+    }
+    .btn {
+        width: 100%;
+        text-align: center;
+    }
+}
+</style>
 </head>
+
 <body>
 
-<h2>Status Pemesanan</h2>
-<a href="dashboard.php">← Kembali ke Dashboard</a>
-<br><br>
+<?php include "../partials/navbar.php"; ?>
+
+<div class="container">
+
+<h2 style="color:white;">Tiket Saya</h2>
 
 <?php if ($message): ?>
-    <p><strong><?= htmlspecialchars($message) ?></strong></p>
+    <div class="alert"><?= htmlspecialchars($message) ?></div>
 <?php endif; ?>
-
-<table>
-<tr>
-    <th>Kode Booking</th>
-    <th>Jumlah Kursi</th>
-    <th>Total Harga</th>
-    <th>Status Pembayaran</th>
-    <th>Refund</th>
-    <th>Aksi</th>
-</tr>
 
 <?php if ($reservasi): ?>
-    <?php foreach ($reservasi as $r): ?>
-    <tr>
-        <td><?= htmlspecialchars($r['kode_booking']) ?></td>
-        <td><?= $r['jumlah_kursi'] ?></td>
-        <td>Rp<?= number_format($r['total_harga'], 0, ',', '.') ?></td>
-        <td>
-            <?php
-            $status = $r['pembayaran_status'] ?? 'belum_bayar';
-            $class = '';
-            $text = '';
-            switch ($status) {
-                case 'berhasil':
-                    $class = 'status-paid';
-                    $text = 'LUNAS';
-                    break;
-                case 'pending':
-                    $class = 'status-pending';
-                    $text = 'MENUNGGU VERIFIKASI';
-                    break;
-                case 'gagal':
-                    $class = 'status-rejected';
-                    $text = 'DITOLAK';
-                    break;
-                default:
-                    $class = 'status-belum';
-                    $text = 'BELUM BAYAR';
-            }
+<?php foreach ($reservasi as $r): ?>
 
-            // Cek waktu_checkin
-            if (!empty($r['waktu_checkin'])) {
-                $class = 'status-checkin';
-                $text = 'SUDAH CHECK-IN';
-            }
-            ?>
-            <button class="<?= $class ?>"><?= $text ?></button>
-        </td>
-        <td>
-            <?php
-            // Jika sudah check-in, tombol refund disable dengan warna abu-abu
-            if (!empty($r['waktu_checkin'])) {
-                echo "<button class='btn-refund' style='background-color:#7f8c8d;' disabled title='Sudah check-in, refund tidak bisa diajukan'>Ajukan Refund</button>";
-            } else {
-                switch ($r['refund_status']) {
-                    case 'Menunggu':
-                        echo "<button class='status-pending'>PENDING REFUND</button>";
-                        break;
-                    case 'Disetujui':
-                        echo "<button class='status-paid'>DISETUJUI</button>";
-                        break;
-                    case 'Ditolak':
-                        echo "<button class='status-rejected'>DITOLAK</button>";
-                        break;
-                    default:
-                        ?>
-                        <a href="ajukan_refund.php?reservasi_id=<?= $r['reservasi_id'] ?>">
-                            <button class="btn-refund">Ajukan Refund</button>
-                        </a>
-                        <?php
-                }
-            }
-            ?>
-        </td>
+<?php
+$status = $r['pembayaran_status'] ?? 'belum_bayar';
+$badgeClass = 'badge-unpaid';
+$badgeText  = 'Belum Lunas';
 
-        <td>
-            <a href="detail_reservasi.php?reservasi_id=<?= $r['reservasi_id'] ?>">
-                <button style="background-color:#007bff;">Detail</button>
-            </a>
+if ($status === 'berhasil') {
+    $badgeClass = 'badge-paid';
+    $badgeText  = 'Lunas';
+} elseif ($status === 'pending') {
+    $badgeClass = 'badge-pending';
+    $badgeText  = 'Menunggu';
+}
 
-            <?php if (empty($r['waktu_checkin'])): ?>
-                <!-- Form Check-In -->
-                <form method="POST" style="display:inline;">
-                    <input type="hidden" name="checkin_reservasi_id" value="<?= $r['reservasi_id'] ?>">
-                    <button type="submit" style="background-color:#3498db;">Check-In</button>
-                </form>
-            <?php endif; ?>
-        </td>
-    </tr>
-    <?php endforeach; ?>
+if (!empty($r['waktu_checkin'])) {
+    $badgeClass = 'badge-checkin';
+    $badgeText  = 'Sudah Check-In';
+}
+?>
+
+<div class="ticket-card">
+
+    <div class="ticket-header">
+        <div>
+            <small>Kode Pemesanan</small>
+            <h3><?= htmlspecialchars($r['kode_booking']) ?></h3>
+        </div>
+        <div class="ticket-status">
+            <span class="badge <?= $badgeClass ?>"><?= $badgeText ?></span>
+            <img src="../assets/logo-tranzio.png" alt="Tranzio" class="badge-logo-right">
+        </div>
+    </div>
+
+
+    <div class="ticket-body">
+        <p><strong>Jumlah Kursi:</strong> <?= $r['jumlah_kursi'] ?></p>
+        <p><strong>Total Harga:</strong> Rp<?= number_format($r['total_harga'],0,',','.') ?></p>
+    </div>
+
+    <div class="ticket-actions">
+        <a href="detail_reservasi.php?reservasi_id=<?= $r['reservasi_id'] ?>" class="btn btn-detail">Detail</a>
+
+        <?php if (empty($r['waktu_checkin'])): ?>
+        <form method="POST">
+            <input type="hidden" name="checkin_reservasi_id" value="<?= $r['reservasi_id'] ?>">
+            <button class="btn btn-checkin">Check-In</button>
+        </form>
+        <?php endif; ?>
+
+        <?php if (empty($r['waktu_checkin'])): ?>
+            <a href="ajukan_refund.php?reservasi_id=<?= $r['reservasi_id'] ?>" class="btn btn-refund">Refund</a>
+        <?php else: ?>
+            <button class="btn btn-disabled" disabled>Refund</button>
+        <?php endif; ?>
+    </div>
+
+</div>
+
+<?php endforeach; ?>
 <?php else: ?>
-<tr>
-    <td colspan="6">Belum ada reservasi</td>
-</tr>
+<p style="color:white;">Belum ada tiket.</p>
 <?php endif; ?>
-</table>
+
+</div>
 
 </body>
 </html>
