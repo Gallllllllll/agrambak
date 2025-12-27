@@ -2,9 +2,6 @@
 session_start();
 require "../config/database.php";
 
-/* ===============================
-   CEK LOGIN
-================================ */
 if (!isset($_SESSION['user'])) {
     header("Location: login.php");
     exit;
@@ -12,28 +9,22 @@ if (!isset($_SESSION['user'])) {
 
 $user = $_SESSION['user'];
 
-/* ===============================
-   CEK METHOD
-================================ */
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     die("Metode tidak valid.");
 }
 
-/* ===============================
-   INPUT
-================================ */
 $reservasi_id = $_POST['reservasi_id'] ?? null;
-$metode = $_POST['metode'] ?? 'transfer';
+$metode = $_POST['metode'] ?? 'transfer'; // HARUS cocok ENUM
 
 if (!$reservasi_id) {
     die("Reservasi tidak ditemukan.");
 }
 
 /* ===============================
-   VALIDASI FILE
+   VALIDASI FILE UPLOAD
 ================================ */
 if (!isset($_FILES['bukti']) || $_FILES['bukti']['error'] !== 0) {
-    die("Bukti pembayaran wajib diupload.");
+    die("File bukti transfer belum diupload.");
 }
 
 $allowed_ext = ['jpg','jpeg','png','pdf'];
@@ -43,56 +34,51 @@ if (!in_array($file_ext, $allowed_ext)) {
     die("Format file tidak diperbolehkan.");
 }
 
+$file_name = uniqid('bukti_') . '.' . $file_ext;
 $upload_dir = "../uploads/";
+
 if (!is_dir($upload_dir)) {
     mkdir($upload_dir, 0777, true);
 }
 
-$file_name = uniqid('bukti_') . '.' . $file_ext;
-$file_path = $upload_dir . $file_name;
-
-if (!move_uploaded_file($_FILES['bukti']['tmp_name'], $file_path)) {
-    die("Gagal upload file.");
+if (!move_uploaded_file($_FILES['bukti']['tmp_name'], $upload_dir . $file_name)) {
+    die("Upload gagal.");
 }
 
 try {
     $pdo->beginTransaction();
 
     /* ===============================
-       CEK RESERVASI USER
+       AMBIL TOTAL HARGA RESERVASI
     ================================ */
     $stmt = $pdo->prepare("
-        SELECT total_harga, status
-        FROM reservasi
+        SELECT total_harga 
+        FROM reservasi 
         WHERE reservasi_id = ? AND user_id = ?
     ");
     $stmt->execute([$reservasi_id, $user['id']]);
-    $reservasi = $stmt->fetch(PDO::FETCH_ASSOC);
+    $total = $stmt->fetchColumn();
 
-    if (!$reservasi) {
+    if ($total === false) {
         throw new Exception("Reservasi tidak ditemukan.");
     }
 
-    if ($reservasi['status'] !== 'Dipesan') {
-        throw new Exception("Reservasi sudah check-in atau dibatalkan.");
-    }
-
     /* ===============================
-       CEK PEMBAYARAN GANDA
+       CEK APAKAH SUDAH ADA PEMBAYARAN
     ================================ */
     $cek = $pdo->prepare("
-        SELECT COUNT(*)
-        FROM pembayaran
-        WHERE reservasi_id = ?
+        SELECT COUNT(*) 
+        FROM pembayaran 
+        WHERE reservasi_id = ? AND status = 'pending'
     ");
     $cek->execute([$reservasi_id]);
 
     if ($cek->fetchColumn() > 0) {
-        throw new Exception("Pembayaran sudah dilakukan.");
+        throw new Exception("Pembayaran sudah pernah diupload, menunggu verifikasi admin.");
     }
 
     /* ===============================
-       INSERT PEMBAYARAN (AUTO BERHASIL)
+       INSERT PEMBAYARAN (PENDING)
     ================================ */
     $stmt = $pdo->prepare("
         INSERT INTO pembayaran
@@ -102,21 +88,26 @@ try {
     $stmt->execute([
         $reservasi_id,
         $metode,
-        (int)$reservasi['total_harga'],
+        (int)$total,
         $file_name
     ]);
 
+    /* ===============================
+       UPDATE STATUS RESERVASI
+    ================================ */
+    $stmt = $pdo->prepare("
+        UPDATE reservasi 
+        SET status = 'lunas' 
+        WHERE reservasi_id = ?
+    ");
+    $stmt->execute([$reservasi_id]);
+
     $pdo->commit();
 
-    header("Location: status_pemesanan.php?success=1");
+    header("Location: status_pemesanan.php");
     exit;
 
 } catch (Exception $e) {
     $pdo->rollBack();
-
-    if (file_exists($file_path)) {
-        unlink($file_path);
-    }
-
     die("Gagal memproses pembayaran: " . $e->getMessage());
 }

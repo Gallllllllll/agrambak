@@ -33,7 +33,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         // Insert ke tabel reservasi
         $kode_booking = "BKS" . rand(1000, 9999);
         $stmt = $pdo->prepare("INSERT INTO reservasi (user_id, jadwal_id, kode_booking, jumlah_kursi, total_harga, status, waktu_pesan) VALUES (?, ?, ?, ?, ?, 'lunas', NOW())");
-        $stmt->execute([$user['id'], $jadwal_id, $kode_booking, $jumlah_kursi, $total_harga]);
+        $stmt->execute([$user['user_id'], $jadwal_id, $kode_booking, $jumlah_kursi, $total_harga]);
 
         $reservasi_id = $pdo->lastInsertId();
 

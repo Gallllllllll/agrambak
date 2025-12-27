@@ -64,7 +64,7 @@ $stmt = $pdo->prepare("
     WHERE r.user_id = ?
     ORDER BY r.waktu_pesan DESC
 ");
-$stmt->execute([$user['id']]);
+$stmt->execute([$user['user_id']]);
 $reservasi = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 

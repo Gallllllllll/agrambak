@@ -17,7 +17,7 @@ if (!$reservasi_id) {
 
 // Ambil reservasi dan jumlah kursi
 $stmt = $pdo->prepare("SELECT * FROM reservasi WHERE reservasi_id = ? AND user_id = ?");
-$stmt->execute([$reservasi_id, $user['id']]);
+$stmt->execute([$reservasi_id, $user['user_id']]);
 $reservasi = $stmt->fetch(PDO::FETCH_ASSOC);
 if (!$reservasi) {
     die("Reservasi tidak ditemukan.");
