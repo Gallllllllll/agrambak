@@ -100,7 +100,7 @@ table tr:nth-child(even) {
     display: flex;
     gap: 10px;
     flex-wrap: wrap;
-    margin-top: 15px;
+    margin: 15px 20px 0 20px;    
 }
 
 .button-group a, .button-group button {
