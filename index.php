@@ -1,11 +1,19 @@
 <?php
 session_start();
+require "config/database.php";
 
 // Jika sudah login, langsung arahkan ke dashboard member
 if (isset($_SESSION['user']) && is_array($_SESSION['user'])) {
     header("Location: member/dashboard.php");
     exit;
 }
+
+$blogs = $pdo->query("
+    SELECT blog_id, judul, gambar, created_at
+    FROM blog
+    ORDER BY created_at DESC
+    LIMIT 10
+")->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
 <!DOCTYPE html>
@@ -34,7 +42,7 @@ if (isset($_SESSION['user']) && is_array($_SESSION['user'])) {
     </div>
 </section>
 
-<!-- BERITA -->
+<!-- ================= BLOG & NEWS ================= -->
 <section class="blog-news">
     <div class="container">
 
@@ -50,42 +58,34 @@ if (isset($_SESSION['user']) && is_array($_SESSION['user'])) {
         <div class="news-container" id="newsContainer">
             <div class="news-track">
 
-                <div class="news-card">
-                    <img src="aset/img/news1.jpg" alt="">
-                    <h3>Promo Natal dan Tahun Baru 2025</h3>
-                </div>
+                <?php if (count($blogs) === 0): ?>
+                    <p style="padding:20px;">Belum ada artikel.</p>
+                <?php endif; ?>
 
-                <div class="news-card">
-                    <img src="gambar/news2.jpg" alt="">
-                    <h3>Benefit Tambahan dengan Keanggotaan RI Plus</h3>
-                </div>
+                <?php foreach ($blogs as $b): ?>
+                    <div class="news-card">
+                        <a href="member/detail_blog.php?blog_id=<?= $b['blog_id'] ?>" style="text-decoration:none;color:inherit;">
 
-                <div class="news-card">
-                    <img src="gambar/news3.jpg" alt="">
-                    <h3>Pilihan Kelas Armada dengan Fasilitas Lengkap</h3>
-                </div>
+                            <?php if (!empty($b['gambar'])): ?>
+                                <img src="uploads/<?= htmlspecialchars($b['gambar']) ?>" alt="Blog">
+                            <?php else: ?>
+                                <img src="aset/img/news-default.jpg" alt="Blog">
+                            <?php endif; ?>
 
-                <div class="news-card">
-                    <img src="gambar/news4.jpg" alt="">
-                    <h3>Inovasi Layanan Digital untuk Penumpang</h3>
-                </div>
+                            <h3><?= htmlspecialchars($b['judul']) ?></h3>
+                            <small style="color:#777;">
+                                <?= date('d M Y', strtotime($b['created_at'])) ?>
+                            </small>
 
-                <div class="news-card">
-                    <img src="gambar/news4.jpg" alt="">
-                    <h3>Inovasi Layanan Digital untuk Penumpang</h3>
-                </div>
-
-                <div class="news-card">
-                    <img src="gambar/news4.jpg" alt="">
-                    <h3>Inovasi Layanan Digital untuk Penumpang</h3>
-                </div>
+                        </a>
+                    </div>
+                <?php endforeach; ?>
 
             </div>
         </div>
 
     </div>
 </section>
-
 
 <?php include "footerguest.php"; ?>
 
