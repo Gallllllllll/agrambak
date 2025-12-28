@@ -35,30 +35,95 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 }
 ?>
 
-
 <!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Login</title>
+    <title>Login - Tranzio</title>
+    <link rel="icon" href="../assets/logo-tranzio.png" type="image/x-icon">
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <style>
+        body {
+            background: linear-gradient(to right, #4e73df, #224abe);
+            font-family: Arial, sans-serif;
+            height: 100vh;
+        }
+
+        .login-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+        }
+
+        .login-card {
+            background: white;
+            padding: 40px 30px;
+            border-radius: 10px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+            width: 350px;
+        }
+
+        .login-card h2 {
+            text-align: center;
+            margin-bottom: 25px;
+            color: #4e73df;
+        }
+
+        .form-control {
+            margin-bottom: 15px;
+            border-radius: 5px;
+        }
+
+        .btn-login {
+            width: 100%;
+            background-color: #4e73df;
+            color: white;
+            font-weight: bold;
+            border-radius: 5px;
+        }
+
+        .btn-login:hover {
+            background-color: #224abe;
+        }
+
+        .error-message {
+            color: red;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .logo {
+            display: block;
+            margin: 0 auto 20px;
+            width: 100px;
+        }
+    </style>
 </head>
 <body>
 
-<h2>Login</h2>
+<div class="login-container">
+    <div class="login-card">
+        <img src="../assets/logo-tranzio.png" alt="Tranzio" class="logo">
+        <h2>Login</h2>
 
-<?php if ($error): ?>
-    <p style="color:red"><?= $error ?></p>
-<?php endif; ?>
+        <?php if ($error): ?>
+            <div class="error-message"><?= htmlspecialchars($error) ?></div>
+        <?php endif; ?>
 
-<form method="POST">
-    <label>Email</label><br>
-    <input type="email" name="email" required><br><br>
-
-    <label>Password</label><br>
-    <input type="password" name="password" required><br><br>
-
-    <button type="submit">Login</button>
-</form>
+        <form method="POST">
+            <input type="email" name="email" class="form-control" placeholder="Email" required>
+            <input type="password" name="password" class="form-control" placeholder="Password" required>
+            <button type="submit" class="btn btn-login">Login</button>
+        </form>
+    </div>
+</div>
 
 </body>
 </html>

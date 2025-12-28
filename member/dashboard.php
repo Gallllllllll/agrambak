@@ -3,11 +3,24 @@ require "../middleware/auth.php";
 login_required();
 require "../config/database.php";
 
+/* ===============================
+   AMBIL DATA TERMINAL
+================================ */
 $terminals = $pdo->query("
     SELECT terminal_id, kota, nama_terminal
     FROM terminal
     ORDER BY kota ASC
-")->fetchAll();
+")->fetchAll(PDO::FETCH_ASSOC);
+
+/* ===============================
+   AMBIL DATA BLOG (DARI ADMIN)
+================================ */
+$blogs = $pdo->query("
+    SELECT blog_id, judul, gambar, created_at
+    FROM blog
+    ORDER BY created_at DESC
+    LIMIT 10
+")->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
 <!DOCTYPE html>
@@ -15,18 +28,20 @@ $terminals = $pdo->query("
 <head>
     <meta charset="UTF-8">
     <title>Dashboard Member</title>
+
     <link rel="stylesheet" href="../aset/css/dashboard.css">
     <link rel="icon" href="../aset/img/logo-tranzio2.png" type="image/x-icon">
+
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css">
     <script src="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 <body>
 
 <?php include "nav.php"; ?>
 
-<!-- HERO SLIDER -->
+<!-- ================= HERO SLIDER ================= -->
 <section class="hero">
     <div class="slides">
         <img src="../aset/img/hero1.png" class="active">
@@ -40,16 +55,17 @@ $terminals = $pdo->query("
     </div>
 </section>
 
-<!-- CARI TIKET -->
+<!-- ================= CARI TIKET ================= -->
 <section class="ticket-box">
     <h3>Cari Tiket Bus</h3>
+
     <form action="hasil_tiket.php" method="GET">
 
         <select name="asal" required>
             <option value="">Terminal Asal</option>
             <?php foreach ($terminals as $t): ?>
                 <option value="<?= $t['terminal_id'] ?>">
-                    <?= $t['kota'] ?> - <?= $t['nama_terminal'] ?>
+                    <?= htmlspecialchars($t['kota']) ?> - <?= htmlspecialchars($t['nama_terminal']) ?>
                 </option>
             <?php endforeach; ?>
         </select>
@@ -58,7 +74,7 @@ $terminals = $pdo->query("
             <option value="">Terminal Tujuan</option>
             <?php foreach ($terminals as $t): ?>
                 <option value="<?= $t['terminal_id'] ?>">
-                    <?= $t['kota'] ?> - <?= $t['nama_terminal'] ?>
+                    <?= htmlspecialchars($t['kota']) ?> - <?= htmlspecialchars($t['nama_terminal']) ?>
                 </option>
             <?php endforeach; ?>
         </select>
@@ -69,7 +85,7 @@ $terminals = $pdo->query("
     </form>
 </section>
 
-<!-- BERITA -->
+<!-- ================= BLOG & NEWS ================= -->
 <section class="blog-news">
     <div class="container">
 
@@ -85,42 +101,34 @@ $terminals = $pdo->query("
         <div class="news-container" id="newsContainer">
             <div class="news-track">
 
-                <div class="news-card">
-                    <img src="../aset/img/news1.jpg" alt="">
-                    <h3>Promo Natal dan Tahun Baru 2025</h3>
-                </div>
+                <?php if (count($blogs) === 0): ?>
+                    <p style="padding:20px;">Belum ada artikel.</p>
+                <?php endif; ?>
 
-                <div class="news-card">
-                    <img src="gambar/news2.jpg" alt="">
-                    <h3>Benefit Tambahan dengan Keanggotaan RI Plus</h3>
-                </div>
+                <?php foreach ($blogs as $b): ?>
+                    <div class="news-card">
+                        <a href="detail_blog.php?blog_id=<?= $b['blog_id'] ?>" style="text-decoration:none;color:inherit;">
 
-                <div class="news-card">
-                    <img src="gambar/news3.jpg" alt="">
-                    <h3>Pilihan Kelas Armada dengan Fasilitas Lengkap</h3>
-                </div>
+                            <?php if (!empty($b['gambar'])): ?>
+                                <img src="../uploads/<?= htmlspecialchars($b['gambar']) ?>" alt="Blog">
+                            <?php else: ?>
+                                <img src="../aset/img/news-default.jpg" alt="Blog">
+                            <?php endif; ?>
 
-                <div class="news-card">
-                    <img src="gambar/news4.jpg" alt="">
-                    <h3>Inovasi Layanan Digital untuk Penumpang</h3>
-                </div>
+                            <h3><?= htmlspecialchars($b['judul']) ?></h3>
+                            <small style="color:#777;">
+                                <?= date('d M Y', strtotime($b['created_at'])) ?>
+                            </small>
 
-                <div class="news-card">
-                    <img src="gambar/news4.jpg" alt="">
-                    <h3>Inovasi Layanan Digital untuk Penumpang</h3>
-                </div>
-
-                <div class="news-card">
-                    <img src="gambar/news4.jpg" alt="">
-                    <h3>Inovasi Layanan Digital untuk Penumpang</h3>
-                </div>
+                        </a>
+                    </div>
+                <?php endforeach; ?>
 
             </div>
         </div>
 
     </div>
 </section>
-
 
 <?php include "footer.php"; ?>
 

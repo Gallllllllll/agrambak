@@ -69,6 +69,8 @@ $tipeBus = $pdo->query("SELECT * FROM armada_tipe")->fetchAll();
 <html>
 <head>
     <title>Manajemen Armada Bus</title>
+    <link rel="stylesheet" href="../../aset/css/dashboard_admin.css">
+    <link rel="stylesheet" href="../../aset/css/users_admin.css">
     <style>
         table { border-collapse: collapse; width: 100%; }
         th, td { border: 1px solid #333; padding: 8px; text-align: center; }
@@ -79,6 +81,7 @@ $tipeBus = $pdo->query("SELECT * FROM armada_tipe")->fetchAll();
     </style>
 </head>
 <body>
+<?php include __DIR__ . '/../sidebar.php'; ?>
 
 <h2>Manajemen Armada Bus</h2>
 
