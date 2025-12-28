@@ -17,42 +17,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $catatan = $_POST['catatan_admin'] ?? '';
 
     if ($aksi === 'setuju') {
-        $pdo->beginTransaction();
-        try {
-            // 1. Update status pembatalan
-            $stmt = $pdo->prepare("
-                UPDATE pembatalan
-                SET status='Disetujui', catatan_admin=?, waktu_respon=NOW()
-                WHERE pembatalan_id=? AND status='Menunggu'
-            ");
-            $stmt->execute([$catatan, $pembatalan_id]);
+    $pdo->beginTransaction();
+    try {
+        // Ambil reservasi_id dari pembatalan
+        $stmt = $pdo->prepare("SELECT reservasi_id FROM pembatalan WHERE pembatalan_id=? AND status='Menunggu'");
+        $stmt->execute([$pembatalan_id]);
+        $res = $stmt->fetch(PDO::FETCH_ASSOC);
 
-            // 2. Ambil reservasi terkait
-            $stmt = $pdo->prepare("SELECT reservasi_id, jadwal_id, user_id FROM pembatalan WHERE pembatalan_id=?");
-            $stmt->execute([$pembatalan_id]);
-            $res = $stmt->fetch(PDO::FETCH_ASSOC);
-
-            $reservasi_id = $res['reservasi_id'];
-            $jadwal_id = $res['jadwal_id'];
-            $user_id = $res['user_id'];
-
-            // 3. Update status reservasi
-            $stmt = $pdo->prepare("UPDATE reservasi SET status='Dibatalkan' WHERE reservasi_id=?");
-            $stmt->execute([$reservasi_id]);
-
-            // 4. Update pembayaran menjadi refunded
-            $stmt = $pdo->prepare("UPDATE pembayaran SET status='refunded' WHERE reservasi_id=?");
-            $stmt->execute([$reservasi_id]);
-
-            // 5. Kembalikan kursi → kosong
-            $stmt = $pdo->prepare("UPDATE seat_booking SET status='kosong' WHERE jadwal_id=? AND penumpang_id=?");
-            $stmt->execute([$jadwal_id, $user_id]);
-
-            $pdo->commit();
-        } catch (Exception $e) {
-            $pdo->rollBack();
-            die("Gagal memproses refund: " . $e->getMessage());
+        if (!$res) {
+            throw new Exception("Refund tidak ditemukan atau sudah diproses.");
         }
+
+        $reservasi_id = $res['reservasi_id'];
+
+        // Update status refund
+        $stmt = $pdo->prepare("UPDATE pembatalan SET status='Disetujui', catatan_admin=?, waktu_respon=NOW() WHERE pembatalan_id=?");
+        $stmt->execute([$catatan, $pembatalan_id]);
+
+        // Update status reservasi menjadi Dibatalkan
+        $stmt = $pdo->prepare("UPDATE reservasi SET status='Dibatalkan' WHERE reservasi_id=?");
+        $stmt->execute([$reservasi_id]);
+
+        // Update pembayaran menjadi refunded
+        $stmt = $pdo->prepare("UPDATE pembayaran SET status='refunded' WHERE reservasi_id=?");
+        $stmt->execute([$reservasi_id]);
+
+        // Kembalikan kursi menjadi kosong
+        $stmt = $pdo->prepare("UPDATE seat_booking SET status='kosong' WHERE reservasi_id=?");
+        $stmt->execute([$reservasi_id]);
+
+        $pdo->commit();
+    } catch (Exception $e) {
+        $pdo->rollBack();
+        die("Gagal memproses refund: " . $e->getMessage());
+    }
+
 
     } elseif ($aksi === 'tolak') {
         $stmt = $pdo->prepare("UPDATE pembatalan SET status='Ditolak', catatan_admin=?, waktu_respon=NOW() WHERE pembatalan_id=? AND status='Menunggu'");

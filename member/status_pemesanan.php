@@ -83,7 +83,6 @@ $stmt = $pdo->prepare("
 ");
 $stmt->execute([$user['user_id']]);
 $reservasi = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
 ?>
 
 <!DOCTYPE html>
@@ -157,6 +156,7 @@ body {
 .badge-pending { background: #f2c94c; }
 .badge-unpaid { background: #eb5757; }
 .badge-checkin { background: #3498db; }
+.badge-refund { background: #f2994a; }
 
 /* ===== BODY ===== */
 .ticket-body {
@@ -250,7 +250,6 @@ body {
     color: #777;
 }
 
-
 /* ===== RESPONSIVE ===== */
 @media (max-width: 600px) {
     .ticket-header {
@@ -295,6 +294,12 @@ if ($status === 'berhasil') {
 } elseif ($status === 'pending') {
     $badgeClass = 'badge-pending';
     $badgeText  = 'Menunggu';
+}
+
+// jika refund disetujui
+if (!empty($r['refund_status']) && $r['refund_status'] === 'Disetujui') {
+    $badgeClass = 'badge-refund';
+    $badgeText  = 'Refund Disetujui';
 }
 
 if (!empty($r['waktu_checkin'])) {
@@ -349,7 +354,9 @@ if (!empty($r['waktu_checkin'])) {
     <div class="ticket-actions">
         <a href="detail_reservasi.php?reservasi_id=<?= $r['reservasi_id'] ?>" class="btn btn-detail">Detail</a>
 
-        <?php if ($status === 'berhasil' && empty($r['waktu_checkin'])): ?>
+        <?php
+        // tombol Check-In hanya aktif jika status pembayaran Lunas, refund belum disetujui, dan belum check-in
+        if ($status === 'berhasil' && empty($r['waktu_checkin']) && (empty($r['refund_status']) || $r['refund_status'] !== 'Disetujui')): ?>
             <form method="POST" style="display:inline;">
                 <input type="hidden" name="checkin_reservasi_id" value="<?= $r['reservasi_id'] ?>">
                 <button class="btn btn-checkin">Check-In</button>
@@ -358,7 +365,9 @@ if (!empty($r['waktu_checkin'])) {
             <button class="btn btn-disabled" disabled>Check-In</button>
         <?php endif; ?>
 
-        <?php if ($status === 'berhasil' && empty($r['waktu_checkin'])): ?>
+        <?php
+        // tombol Refund hanya aktif jika pembayaran Lunas, belum check-in, dan refund belum disetujui
+        if ($status === 'berhasil' && empty($r['waktu_checkin']) && (empty($r['refund_status']) || $r['refund_status'] !== 'Disetujui')): ?>
             <a href="ajukan_refund.php?reservasi_id=<?= $r['reservasi_id'] ?>" class="btn btn-refund">Refund</a>
         <?php else: ?>
             <button class="btn btn-disabled" disabled>Refund</button>
