@@ -48,20 +48,42 @@ if (isset($_POST['checkin_reservasi_id'])) {
    AMBIL DATA RESERVASI
 ===================== */
 $stmt = $pdo->prepare("
-    SELECT r.*, 
-           p.status AS pembayaran_status,
-           b.status AS refund_status
+    SELECT 
+        r.*, 
+        p.status AS pembayaran_status,
+        b.status AS refund_status,
+
+        j.tanggal,
+        j.jam_berangkat,
+        j.jam_tiba,
+
+        ta.nama_terminal AS terminal_asal,
+        tt.nama_terminal AS terminal_tujuan
+
     FROM reservasi r
-    LEFT JOIN pembayaran p ON p.reservasi_id = r.reservasi_id
+
+    JOIN jadwal j ON r.jadwal_id = j.jadwal_id
+    JOIN rute ru ON j.rute_id = ru.rute_id
+    JOIN terminal ta ON ru.asal_id = ta.terminal_id
+    JOIN terminal tt ON ru.tujuan_id = tt.terminal_id
+
+    LEFT JOIN pembayaran p 
+        ON p.reservasi_id = r.reservasi_id
         AND p.waktu_bayar = (
-            SELECT MAX(waktu_bayar) FROM pembayaran WHERE reservasi_id = r.reservasi_id
+            SELECT MAX(waktu_bayar) 
+            FROM pembayaran 
+            WHERE reservasi_id = r.reservasi_id
         )
-    LEFT JOIN pembatalan b ON b.reservasi_id = r.reservasi_id
+
+    LEFT JOIN pembatalan b 
+        ON b.reservasi_id = r.reservasi_id
+
     WHERE r.user_id = ?
     ORDER BY r.waktu_pesan DESC
 ");
 $stmt->execute([$user['user_id']]);
 $reservasi = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
 ?>
 
 <!DOCTYPE html>
@@ -183,6 +205,52 @@ body {
     cursor: not-allowed;
 }
 
+/* ===== ROUTE INFO ===== */
+.route-box {
+    margin-top: 18px;
+    margin-bottom: 10px;
+    padding-left: 10px;
+}
+
+.route-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.route-icon {
+    width: 14px;
+    height: 14px;
+    background: #2d9cdb;
+    border-radius: 50%;
+    margin-top: 6px;
+    position: relative;
+}
+
+.route-line {
+    width: 2px;
+    height: 28px;
+    background: #2d9cdb;
+    margin-left: 6px;
+    margin-bottom: 6px;
+}
+
+.route-info strong {
+    font-size: 16px;
+    color: #2f405a;
+}
+
+.route-info span {
+    display: block;
+    font-weight: 600;
+    color: #333;
+}
+
+.route-info small {
+    color: #777;
+}
+
+
 /* ===== RESPONSIVE ===== */
 @media (max-width: 600px) {
     .ticket-header {
@@ -246,6 +314,30 @@ if (!empty($r['waktu_checkin'])) {
             <span class="badge <?= $badgeClass ?>"><?= $badgeText ?></span>
             <img src="../assets/logo-tranzio.png" alt="Tranzio" class="badge-logo-right">
         </div>
+    </div>
+
+    <div class="route-box">
+
+        <div class="route-item">
+            <div class="route-icon"></div>
+            <div class="route-info">
+                <strong><?= $r['jam_berangkat'] ?></strong>
+                <span><?= htmlspecialchars($r['terminal_asal']) ?></span>
+                <small><?= date('d F Y', strtotime($r['tanggal'])) ?></small>
+            </div>
+        </div>
+
+        <div class="route-line"></div>
+
+        <div class="route-item">
+            <div class="route-icon"></div>
+            <div class="route-info">
+                <strong><?= $r['jam_tiba'] ?></strong>
+                <span><?= htmlspecialchars($r['terminal_tujuan']) ?></span>
+                <small><?= date('d F Y', strtotime($r['tanggal'])) ?></small>
+            </div>
+        </div>
+
     </div>
 
 

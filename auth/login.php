@@ -50,7 +50,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     <style>
         body {
-            background: linear-gradient(to right, #4e73df, #224abe);
+            background: linear-gradient(to right, #384e90ff, #1a2c63ff);
             font-family: Arial, sans-serif;
             height: 100vh;
         }
@@ -104,6 +104,33 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             margin: 0 auto 20px;
             width: 100px;
         }
+
+        .register-link {
+            color: #4e73df;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .register-link:hover {
+            text-decoration: underline;
+        }
+
+        .btn-back {
+            margin-top: 10px;
+            width: 100%;
+            border: 1px solid #4e73df;
+            color: #4e73df;
+            font-weight: bold;
+            border-radius: 5px;
+            background: transparent;
+        }
+
+        .btn-back:hover {
+            background-color: #4e73df;
+            color: white;
+        }
+
+
     </style>
 </head>
 <body>
@@ -122,8 +149,19 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             <input type="password" name="password" class="form-control" placeholder="Password" required>
             <button type="submit" class="btn btn-login">Login</button>
         </form>
+        <div class="text-center mt-3">
+            <p class="mb-2">
+                Belum punya akun?
+                <a href="register.php" class="register-link">Registrasi</a>
+            </p>
+
+            <a href="../index.php" class="btn btn-back">
+                <i class="fa fa-arrow-left"></i> Kembali
+            </a>
+        </div>
     </div>
 </div>
+
 
 </body>
 </html>

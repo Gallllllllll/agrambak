@@ -12,11 +12,45 @@ $reservasi_id = $_GET['reservasi_id'] ?? die("Reservasi tidak ditemukan");
 
 // Ambil data reservasi + pembayaran
 $stmt = $pdo->prepare("
-    SELECT r.*, p.status AS pembayaran_status, p.metode, p.bukti_transfer, p.waktu_bayar
+    SELECT 
+        r.*,
+
+        p.status AS pembayaran_status,
+        p.metode,
+        p.bukti_transfer,
+        p.waktu_bayar,
+
+        j.tanggal,
+        j.jam_berangkat,
+        j.jam_tiba,
+
+        ta.nama_terminal AS terminal_asal,
+        ta.kota AS kota_asal,
+
+        tt.nama_terminal AS terminal_tujuan,
+        tt.kota AS kota_tujuan
+
     FROM reservasi r
-    LEFT JOIN pembayaran p ON r.reservasi_id = p.reservasi_id
-    WHERE r.reservasi_id = ? AND r.user_id = ?
+
+    LEFT JOIN pembayaran p 
+        ON r.reservasi_id = p.reservasi_id
+
+    JOIN jadwal j 
+        ON r.jadwal_id = j.jadwal_id
+
+    JOIN rute ru 
+        ON j.rute_id = ru.rute_id
+
+    JOIN terminal ta 
+        ON ru.asal_id = ta.terminal_id
+
+    JOIN terminal tt 
+        ON ru.tujuan_id = tt.terminal_id
+
+    WHERE r.reservasi_id = ?
+      AND r.user_id = ?
 ");
+
 $stmt->execute([$reservasi_id, $user['user_id']]);
 $data = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -37,6 +71,8 @@ $jumlah_kursi = count($penumpang_list);
 <meta charset="UTF-8">
 <title>Detail Reservasi - <?= htmlspecialchars($data['kode_booking']) ?></title>
 <link rel="stylesheet" href="../aset/css/nav.css">
+<link rel="stylesheet" href="../aset/css/footer.css">
+<link rel="icon" href="../aset/img/logo-tranzio2.png" type="image/x-icon">
 <style>
 body {
     font-family: Arial, sans-serif;
@@ -87,8 +123,9 @@ table th, table td {
 }
 
 table th {
-    background-color: #f5f5f5;
+    background-color: #1f3556;
     font-weight: bold;
+    color: white;
 }
 
 table tr:nth-child(even) {
@@ -100,7 +137,7 @@ table tr:nth-child(even) {
     display: flex;
     gap: 10px;
     flex-wrap: wrap;
-    margin: 15px 20px 0 20px;    
+    margin: 15px 20px 50px 20px;    
 }
 
 .button-group a, .button-group button {
@@ -132,6 +169,30 @@ table tr:nth-child(even) {
     background-color: #219150;
 }
 
+.info-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid #8f9398ff;
+}
+
+.info-table th {
+    width: 35%;
+    background: #1f3556;
+    color: white;
+    padding: 10px 14px;
+    text-align: left;
+    font-weight: bold;
+}
+
+.info-table td {
+    background: #ffffff;
+    padding: 10px 14px;
+}
+
+
 @media(max-width:600px){
     .card {
         padding: 15px;
@@ -157,20 +218,63 @@ table tr:nth-child(even) {
 
 <div class="card">
     <h3>Informasi Reservasi</h3>
-    <p><b>Reservasi ID:</b> <?= $data['reservasi_id'] ?></p>
-    <p><b>Jumlah Kursi:</b> <?= $jumlah_kursi ?></p>
-    <p><b>Total Harga:</b> Rp<?= number_format($data['total_harga'],0,',','.') ?></p>
-    <p><b>Status Pembayaran:</b> <?= strtoupper($data['pembayaran_status'] ?? 'MENUNGGU') ?></p>
-    <p><b>Metode:</b> <?= $data['metode'] ?? '-' ?></p>
-    <p><b>Bukti Transfer:</b> 
-        <?php if ($data['bukti_transfer']): ?>
-            <a href="../uploads/<?= htmlspecialchars($data['bukti_transfer']) ?>" target="_blank">Lihat</a>
-        <?php else: ?>
-            -
-        <?php endif; ?>
-    </p>
-    <p><b>Waktu Bayar:</b> <?= $data['waktu_bayar'] ?? '-' ?></p>
+
+    <div class="table-wrapper">
+        <table class="info-table">
+            <tr>
+                <th>Kode Booking</th>
+                <td><?= htmlspecialchars($data['kode_booking']) ?></td>
+            </tr>
+            <tr>
+                <th>Jumlah Kursi</th>
+                <td><?= $jumlah_kursi ?></td>
+            </tr>
+            <tr>
+                <th>Lokasi Berangkat</th>
+                <td><?= htmlspecialchars($data['terminal_asal']) ?></td>
+            </tr>
+            <tr>
+                <th>Lokasi Tujuan</th>
+                <td><?= htmlspecialchars($data['terminal_tujuan']) ?></td>
+            </tr>
+            <tr>
+                <th>Jam Berangkat</th>
+                <td><?= htmlspecialchars($data['jam_berangkat']) ?></td>
+            </tr>
+            <tr>
+                <th>Jam Tiba</th>
+                <td><?= htmlspecialchars($data['jam_tiba']) ?></td>
+            </tr>
+            <tr>
+                <th>Total Harga</th>
+                <td>Rp<?= number_format($data['total_harga'],0,',','.') ?></td>
+            </tr>
+            <tr>
+                <th>Status Pembayaran</th>
+                <td><?= strtoupper($data['pembayaran_status'] ?? 'MENUNGGU') ?></td>
+            </tr>
+            <tr>
+                <th>Metode Pembayaran</th>
+                <td><?= $data['metode'] ?? '-' ?></td>
+            </tr>
+            <tr>
+                <th>Bukti Transfer</th>
+                <td>
+                    <?php if ($data['bukti_transfer']): ?>
+                        <a href="../uploads/<?= htmlspecialchars($data['bukti_transfer']) ?>" target="_blank">Lihat Bukti</a>
+                    <?php else: ?>
+                        -
+                    <?php endif; ?>
+                </td>
+            </tr>
+            <tr>
+                <th>Waktu Bayar</th>
+                <td><?= $data['waktu_bayar'] ?? '-' ?></td>
+            </tr>
+        </table>
+    </div>
 </div>
+
 
 <div class="card">
     <h3>Daftar Penumpang</h3>
@@ -201,6 +305,6 @@ table tr:nth-child(even) {
         <button disabled class="button-print">🧾 Cetak Tiket</button>
     <?php endif; ?>
 </div>
-
+<?php include __DIR__ . "/footer.php"; ?>
 </body>
 </html>

@@ -6,7 +6,7 @@
     <div class="footer-top">
 
         <div class="footer-brand">
-            <img src="../aset/img/logo-tranzio.png" alt="Tranzio">
+            <img src="aset/img/logo-tranzio.png" alt="Tranzio">
             <p>Your Reliable Travel Partner</p>
             <small>
                 Jl. Ahmad Yani No 200A, Pabelan,<br>

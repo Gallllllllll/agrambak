@@ -20,8 +20,8 @@ $baseUrl = (
     <ul class="menu desktop-menu">
         <li><a href="<?= $baseUrl ?>/index.php">Dashboard</a></li>
         <li><a href=#>Tentang Kami</a></li>
-        <li class="btn-login"><a href="<?= $baseUrl ?>/auth/login.php">Login</a></li>
-        <li class="btn-register"><a href="<?= $baseUrl ?>/auth/register.php">Register</a></li>
+        <li><a href="<?= $baseUrl ?>/auth/login.php">Login</a></li>
+        <li><a href="<?= $baseUrl ?>/auth/register.php">Register</a></li>
     </ul>
 
     <!-- BURGER MENU -->
