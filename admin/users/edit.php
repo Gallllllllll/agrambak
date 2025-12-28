@@ -25,13 +25,88 @@ $user->execute([$id]);
 $user = $user->fetch();
 ?>
 
-<form method="POST">
-    <input name="nama" value="<?= $user['nama'] ?>"><br>
-    <input name="email" value="<?= $user['email'] ?>"><br>
-    <input name="telepon" value="<?= $user['telepon'] ?>"><br>
-    <select name="role">
-        <option value="user" <?= $user['role']=='user'?'selected':'' ?>>User</option>
-        <option value="admin" <?= $user['role']=='admin'?'selected':'' ?>>Admin</option>
-    </select><br>
-    <button>Simpan</button>
-</form>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- CSS GLOBAL -->
+    <link rel="stylesheet" href="/agrambak/aset/css/dashboard_admin.css">
+    <link rel="stylesheet" href="/agrambak/aset/css/users_admin.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+    
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.5/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <title>Edit User</title>
+</head>
+<body>
+    <?php include __DIR__ . '/../sidebar.php'; ?>
+
+<div class="main-content">
+
+    <div class="dashboard-header">
+        <div>
+            <h1>Edit User</h1>
+            <p>Perbarui data pengguna</p>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
+
+            <form method="POST" class="row g-3">
+
+                <div class="col-md-6">
+                    <label class="form-label">Nama Lengkap</label>
+                    <input type="text" name="nama" class="form-control"
+                           value="<?= htmlspecialchars($user['nama']) ?>" required>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Email</label>
+                    <input type="email" name="email" class="form-control"
+                           value="<?= htmlspecialchars($user['email']) ?>" required>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Telepon</label>
+                    <input type="text" name="telepon" class="form-control"
+                           value="<?= htmlspecialchars($user['telepon']) ?>">
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Alamat</label>
+                    <input type="text" name="alamat" class="form-control"
+                           value="<?= htmlspecialchars($user['alamat']) ?>" required>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Role</label>
+                    <select name="role" class="form-select" required>
+                        <option value="user" <?= $user['role']=='user'?'selected':'' ?>>User</option>
+                        <option value="admin" <?= $user['role']=='admin'?'selected':'' ?>>Admin</option>
+                    </select>
+                </div>
+
+                <div class="col-12 d-flex justify-content-between mt-4">
+                    <a href="index.php" class="btn btn-light">
+                        ← Kembali
+                    </a>
+
+                    <button type="submit" class="btn btn-primary px-4">
+                        Simpan Perubahan
+                    </button>
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+
+</div>
+    
+</body>
+</html>

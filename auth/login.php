@@ -8,14 +8,22 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $email = $_POST["email"];
     $password = md5($_POST["password"]); // SESUAI DB
 
-    $stmt = $pdo->prepare("SELECT * FROM users WHERE email = ? AND password = ?");
+    $stmt = $pdo->prepare("
+        SELECT user_id, nama, role 
+        FROM users 
+        WHERE email = ? AND password = ?
+    ");
     $stmt->execute([$email, $password]);
-    $user = $stmt->fetch();
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if ($user) {
-        $_SESSION["user"] = $user;
+        $_SESSION['user'] = [
+            'user_id'   => $user['user_id'],
+            'nama' => $user['nama'],
+            'role' => $user['role']
+        ];
 
-        if ($user["role"] === "admin") {
+        if ($user['role'] === 'admin') {
             header("Location: ../admin/dashboard.php");
         } else {
             header("Location: ../member/dashboard.php");
@@ -26,6 +34,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     }
 }
 ?>
+
 
 <!DOCTYPE html>
 <html lang="id">
