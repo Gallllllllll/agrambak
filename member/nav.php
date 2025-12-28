@@ -35,6 +35,7 @@ if ($userLogin && isset($userLogin['user_id'])) {
 // Jika foto tidak ada, pakai default avatar
 $profileImgPath = $profileImg ? $baseUrl.'/../uploads/'.htmlspecialchars($profileImg) 
                               : $baseUrl.'/../aset/icon/profile.png';
+
 ?>
 <html>
 <nav class="navbar">
