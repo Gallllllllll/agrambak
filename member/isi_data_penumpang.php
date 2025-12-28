@@ -9,63 +9,137 @@ if (!isset($_SESSION["user"])) {
 
 $user = $_SESSION["user"];
 
-// Ambil data reservasi dari query string
+/* ===============================
+   VALIDASI RESERVASI
+================================ */
 $reservasi_id = $_GET['reservasi_id'] ?? null;
-if (!$reservasi_id) {
+if (!$reservasi_id || !is_numeric($reservasi_id)) {
     die("Reservasi tidak valid.");
 }
 
-// Ambil reservasi dan jumlah kursi
-$stmt = $pdo->prepare("SELECT * FROM reservasi WHERE reservasi_id = ? AND user_id = ?");
+$stmt = $pdo->prepare("
+    SELECT * FROM reservasi 
+    WHERE reservasi_id = ? 
+    AND user_id = ?
+");
 $stmt->execute([$reservasi_id, $user['user_id']]);
 $reservasi = $stmt->fetch(PDO::FETCH_ASSOC);
+
 if (!$reservasi) {
     die("Reservasi tidak ditemukan.");
 }
 
-// Ambil seat yang dipesan
-$stmt = $pdo->prepare("SELECT nomor_kursi FROM seat_booking WHERE penumpang_id IS NULL AND jadwal_id = ?");
-$stmt->execute([$reservasi['jadwal_id']]);
-$kursi = $stmt->fetchAll(PDO::FETCH_COLUMN);
+/* ===============================
+   AMBIL KURSI (1 SAJA)
+================================ */
+// Ambil kursi dari reservasi, jika sudah ada
+$stmt = $pdo->prepare("
+    SELECT nomor_kursi 
+    FROM seat_booking 
+    WHERE reservasi_id = ?
+    LIMIT 1
+");
+$stmt->execute([$reservasi_id]);
+$seat = $stmt->fetchColumn();
 
+if (!$seat) {
+    // Jika belum ada, ambil kursi kosong dari jadwal
+    $stmt2 = $pdo->prepare("
+        SELECT nomor_kursi 
+        FROM seat_booking 
+        WHERE jadwal_id = ? AND status = 'kosong'
+        LIMIT 1
+    ");
+    $stmt2->execute([$reservasi['jadwal_id']]);
+    $seat = $stmt2->fetchColumn();
+
+    if ($seat) {
+        // Buat seat_booking untuk reservasi baru
+        $pdo->prepare("
+            INSERT INTO seat_booking (jadwal_id, nomor_kursi, penumpang_id, status, reservasi_id)
+            VALUES (?, ?, NULL, 'kosong', ?)
+        ")->execute([$reservasi['jadwal_id'], $seat, $reservasi_id]);
+    } else {
+        // Tidak ada kursi sama sekali
+        $pdo->prepare("
+            UPDATE reservasi 
+            SET status = 'gagal' 
+            WHERE reservasi_id = ?
+        ")->execute([$reservasi_id]);
+
+        die("Kursi tidak ditemukan atau reservasi dibatalkan.");
+    }
+}
+
+
+/* ===============================
+   SIMPAN DATA PENUMPANG
+================================ */
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
-    $nama = $_POST['nama'] ?? [];
-    $nik = $_POST['nik'] ?? [];
-    $email = $_POST['email'] ?? [];
-    $telepon = $_POST['telepon'] ?? [];
 
-    if (count($kursi) !== count($nama)) {
-        die("Data penumpang tidak lengkap.");
+    $nama    = trim($_POST['nama'] ?? '');
+    $nik     = trim($_POST['nik'] ?? '');
+    $email   = trim($_POST['email'] ?? '');
+    $telepon = trim($_POST['telepon'] ?? '');
+
+    if (!$nama || !$nik || !$email || !$telepon) {
+        die("Semua data penumpang wajib diisi.");
     }
 
     try {
         $pdo->beginTransaction();
 
-        foreach ($kursi as $i => $seat) {
-            // Insert penumpang lengkap
-            $stmt = $pdo->prepare("INSERT INTO penumpang (reservasi_id, nama_penumpang, nik, email, telepon, nomor_kursi) VALUES (?, ?, ?, ?, ?, ?)");
-            $stmt->execute([
-                $reservasi_id,
-                $nama[$i],
-                $nik[$i],
-                $email[$i],
-                $telepon[$i],
-                $seat
-            ]);
-            $penumpang_id = $pdo->lastInsertId();
+        // Insert penumpang
+        $stmt = $pdo->prepare("
+            INSERT INTO penumpang 
+            (reservasi_id, nama_penumpang, nik, email, telepon, nomor_kursi)
+            VALUES (?, ?, ?, ?, ?, ?)
+        ");
+        $stmt->execute([
+            $reservasi_id,
+            $nama,
+            $nik,
+            $email,
+            $telepon,
+            $seat
+        ]);
 
-            // Update seat_booking dengan penumpang_id
-            $stmt = $pdo->prepare("UPDATE seat_booking SET penumpang_id = ? WHERE jadwal_id = ? AND nomor_kursi = ?");
-            $stmt->execute([$penumpang_id, $reservasi['jadwal_id'], $seat]);
-        }
+        $penumpang_id = $pdo->lastInsertId();
+
+        // Update seat_booking
+        $stmt = $pdo->prepare("
+            UPDATE seat_booking 
+            SET penumpang_id = ?
+            WHERE reservasi_id = ? 
+            AND nomor_kursi = ?
+        ");
+        $stmt->execute([$penumpang_id, $reservasi_id, $seat]);
+
+        // Update status reservasi → BERHASIL
+        $stmt = $pdo->prepare("
+            UPDATE reservasi 
+            SET status = 'berhasil'
+            WHERE reservasi_id = ?
+        ");
+        $stmt->execute([$reservasi_id]);
 
         $pdo->commit();
-        // Redirect ke form upload pembayaran
+
+        // Kembali ke dashboard
         header("Location: upload_pembayaran_form.php?reservasi_id=$reservasi_id");
         exit;
+
     } catch (Exception $e) {
         $pdo->rollBack();
-        die("Gagal menyimpan data penumpang: " . $e->getMessage());
+
+        // Gagal total
+        $pdo->prepare("
+            UPDATE reservasi 
+            SET status = 'gagal'
+            WHERE reservasi_id = ?
+        ")->execute([$reservasi_id]);
+
+        die("Gagal menyimpan data penumpang.");
     }
 }
 ?>
@@ -80,16 +154,17 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 body {
     background: #2f405a;
     color: #333;
+    font-family: Arial, sans-serif;
 }
 
 h2 {
     color: #fff;
     text-align: center;
-    margin-bottom: 20px;
+    margin: 20px 0;
 }
 
 form {
-    max-width: 800px;
+    max-width: 600px;
     margin: 0 auto;
 }
 
@@ -97,125 +172,84 @@ fieldset {
     background: #fff;
     border-radius: 15px;
     padding: 20px;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-    margin-bottom: 20px;
-    border: 1px solid #ddd;
+    box-shadow: 0 8px 20px rgba(0,0,0,.15);
+    border: none;
 }
 
 legend {
     font-weight: bold;
     color: #2c3e50;
-    background: #fff;        /* background putih */
-    padding: 5px 15px;       /* ruang di sekitar teks */
-    border-radius: 10px;     /* radius membulat */
-    /* opsional, sedikit bayangan */
-    display: inline-block;   /* supaya radius terlihat rapi */
-    margin-bottom: 10px;     /* jarak ke konten di bawah */
+    padding: 5px 15px;
+    background: #fff;
+    border-radius: 10px;
 }
-
-
-.form-grid {
-    display: flex;
-    flex-direction: column;  /* susun input menurun */
-    gap: 10px;               /* jarak antar input */
-}
-
 
 .form-group {
     display: flex;
-    flex-direction: column;  /* label di atas input */
-     /* lebar minimum */
+    flex-direction: column;
+    margin-bottom: 12px;
 }
-
-
 
 label {
     font-weight: bold;
     margin-bottom: 5px;
-    color: #2c3e50;
 }
 
-input[type="text"],
-input[type="email"] {
-    padding: 10px 12px;
-    border: 1px solid #ccc;
+input {
+    padding: 10px;
     border-radius: 8px;
-    font-size: 14px;
-    transition: border-color 0.2s;
-}
-
-input[type="text"]:focus,
-input[type="email"]:focus {
-    border-color: #3498db;
-    outline: none;
+    border: 1px solid #ccc;
 }
 
 button {
     display: block;
-    margin: 20px auto 0;
+    margin: 20px auto;
+    padding: 12px 25px;
     background: #27ae60;
     color: #fff;
     border: none;
-    padding: 12px 25px;
     border-radius: 10px;
     font-size: 16px;
     cursor: pointer;
-    transition: background 0.2s;
-    font-weight: bold;
 }
-
 button:hover {
     background: #219150;
 }
-
-@media (max-width: 600px) {
-    .form-grid {
-        grid-template-columns: 1fr;
-    }
-
-    input[type="text"],
-    input[type="email"] {
-        font-size: 13px;
-    }
-
-    button {
-        width: 100%;
-        font-size: 15px;
-    }
-}
-
 </style>
 </head>
 <body>
+
 <?php include __DIR__ . "/nav.php"; ?>
 
 <h2>Isi Data Penumpang</h2>
 
 <form method="post">
-<?php foreach ($kursi as $i => $seat): ?>
     <fieldset>
         <legend>Kursi <?= htmlspecialchars($seat) ?></legend>
-        <div class="form-grid">
-            <div class="form-group">
-                <label>Nama:</label>
-                <input type="text" name="nama[]" required>
-            </div>
-            <div class="form-group">
-                <label>NIK:</label>
-                <input type="text" name="nik[]" required>
-            </div>
-            <div class="form-group">
-                <label>Email:</label>
-                <input type="email" name="email[]" required>
-            </div>
-            <div class="form-group">
-                <label>Telepon:</label>
-                <input type="text" name="telepon[]" required>
-            </div>
+
+        <div class="form-group">
+            <label>Nama</label>
+            <input type="text" name="nama" required>
+        </div>
+
+        <div class="form-group">
+            <label>NIK</label>
+            <input type="text" name="nik" required>
+        </div>
+
+        <div class="form-group">
+            <label>Email</label>
+            <input type="email" name="email" required>
+        </div>
+
+        <div class="form-group">
+            <label>Telepon</label>
+            <input type="text" name="telepon" required>
         </div>
     </fieldset>
-<?php endforeach; ?>
-<button type="submit">Simpan Data Penumpang</button>
+
+    <button type="submit">Simpan</button>
 </form>
+
 </body>
 </html>

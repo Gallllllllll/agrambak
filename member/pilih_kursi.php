@@ -9,15 +9,13 @@ if (!isset($_SESSION["user"])) {
 
 $user = $_SESSION["user"];
 
-// Validasi jadwal_id
+// Validasi jadwal
 if (!isset($_GET['jadwal_id']) || !is_numeric($_GET['jadwal_id'])) {
     die("Jadwal tidak ditemukan.");
 }
 $jadwal_id = (int)$_GET['jadwal_id'];
 
-/* ===============================
-   AMBIL DATA JADWAL
-================================ */
+// Ambil data jadwal
 $stmt = $pdo->prepare("
     SELECT j.jadwal_id, j.tanggal, j.jam_berangkat, j.jam_tiba, j.harga,
            ba.nama_bus, ba.kapasitas
@@ -28,40 +26,23 @@ $stmt = $pdo->prepare("
 $stmt->execute([$jadwal_id]);
 $jadwal = $stmt->fetch(PDO::FETCH_ASSOC);
 
-if (!$jadwal) die("Jadwal tidak ditemukan.");
+if (!$jadwal) die("Jadwal tidak ditemukan");
 
-/* ===============================
-   AMBIL STATUS KURSI
-================================ */
+// Ambil status kursi yang sudah terisi
 $stmt2 = $pdo->prepare("
-    SELECT nomor_kursi, status 
-    FROM seat_booking 
-    WHERE jadwal_id = ?
+    SELECT nomor_kursi
+    FROM seat_booking
+    WHERE jadwal_id = ? AND status = 'terisi'
 ");
 $stmt2->execute([$jadwal_id]);
-$rawSeats = $stmt2->fetchAll(PDO::FETCH_ASSOC);
+$filled = $stmt2->fetchAll(PDO::FETCH_COLUMN);
 
-// Mapping status ke kelas CSS: terisi, diblock, kosong
-$seats = [];
-$statusMap = [
-    'kosong' => 'kosong',
-    'terisi' => 'terisi',
-    'diblock' => 'diblock'
-];
-foreach($rawSeats as $s) {
-    $seats[$s['nomor_kursi']] = $statusMap[$s['status']] ?? 'terisi';
-}
-
-/* ===============================
-   SEAT MAP
-================================ */
+// Ambil seatmap bus
 $stmt3 = $pdo->prepare("
-    SELECT nomor_kursi 
-    FROM seat_map 
+    SELECT nomor_kursi
+    FROM seat_map
     WHERE tipe_id = (
-        SELECT tipe_id 
-        FROM bus_armada 
-        WHERE armada_id = (
+        SELECT tipe_id FROM bus_armada WHERE armada_id = (
             SELECT armada_id FROM jadwal WHERE jadwal_id = ?
         )
     )
@@ -72,162 +53,170 @@ $seatmap = $stmt3->fetchAll(PDO::FETCH_COLUMN);
 ?>
 
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
-    <title>Pilih Kursi</title>
-    <link rel="stylesheet" href="../aset/css/nav.css">
-    <link rel="stylesheet" href="../aset/css/footer.css">
-    <style>
-        body {
-            background: #2f405a;
-            color: #333;
-            font-family: Arial, sans-serif;
-        }
-        h2 {
-            color: white;
-            text-align: center;
-            margin-top: 20px;
-        }
-        form {
-            max-width: 700px;
-            margin: 20px auto;
-            background: #fff;
-            padding: 20px;
-            border-radius: 20px;
-            box-shadow: 0 10px 25px rgba(0,0,0,.15);
-        }
+<meta charset="UTF-8">
+<title>Pilih Kursi</title>
 
-        /* Container bus */
-        .bus-container {
-            width: 100%;
-            background: #bdc3c7;
-            border-radius: 20px;
-            padding: 20px;
-            position: relative;
-        }
+<link rel="stylesheet" href="../aset/css/nav.css">
+<link rel="stylesheet" href="../aset/css/footer.css">
 
-        /* Atap bus */
-        .bus-top {
-            width: 60%;
-            height: 30px;
-            background: #34495e;
-            border-radius: 15px 15px 0 0;
-            margin: 0 auto 15px auto;
-            text-align: right;
-            padding-right: 20px;
-            line-height: 30px;
-            color: #fff;
-            font-weight: bold;
-        }
+<style>
+body {
+    background: #2f405a;
+    font-family: Arial, sans-serif;
+}
 
-        /* Baris kursi */
-        .seat-row {
-            display: flex;
-            justify-content: center; /* kursi lebih rapat ke tengah */
-            margin-bottom: 5px; /* jarak antar baris */
-        }
+h2 {
+    color: #fff;
+    text-align: center;
+    margin: 20px 0;
+}
 
-        /* Kursi */
-        .seat {
-            width: 40px;
-            height: 40px;
-            border-radius: 8px;
-            text-align: center;
-            line-height: 40px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.2s;
-            border: 1px solid #333;
-            user-select: none;
-            margin: 8px; /* jarak antar kursi lebih rapat */
-        }
-        .seat.kosong { background: #2ecc71; }
-        .seat.diblock { background: #f1c40f; cursor:not-allowed; }
-        .seat.terisi { background: #e74c3c; cursor:not-allowed; }
-        .seat.selected { background: #3498db; color:#fff; }
+form {
+    max-width: 720px;
+    margin: 0 auto 30px;
+    background: #fff;
+    padding: 20px;
+    border-radius: 20px;
+    box-shadow: 0 10px 25px rgba(0,0,0,.15);
+}
 
-        /* Lorong */
-        .aisle {
-            width: 120px; /* lorong lebih sempit */
-        }
+.bus-container {
+    background: #bdc3c7;
+    border-radius: 20px;
+    padding: 20px;
+}
 
-        /* Tombol */
-        button {
-            display: block;
-            margin: 20px auto 0 auto;
-            background: #27ae60;
-            color: #fff;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 10px;
-            font-size: 16px;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-        button:hover { background: #219150; }
+.bus-top {
+    width: 60%;
+    height: 30px;
+    background: #34495e;
+    border-radius: 15px 15px 0 0;
+    margin: 0 auto 15px;
+    color: #fff;
+    text-align: right;
+    padding-right: 20px;
+    line-height: 30px;
+    font-weight: bold;
+}
 
-        @media(max-width:600px){
-            .seat { width:30px; height:30px; line-height:30px; font-size:12px; margin:1px; }
-            .aisle { width:15px; }
-            .bus-top { width:80%; height:25px; line-height:25px; font-size:12px; }
-        }
-    </style>
+.seat-row {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 5px;
+}
+
+.seat {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    text-align: center;
+    line-height: 40px;
+    font-weight: bold;
+    margin: 6px;
+    border: 1px solid #333;
+    user-select: none;
+}
+
+.seat.kosong { background: #2ecc71; cursor: pointer; }
+.seat.terisi { background: #e74c3c; cursor: not-allowed; }
+.seat.selected { background: #3498db; color: #fff; }
+
+.aisle { width: 100px; }
+
+button {
+    display: block;
+    margin: 25px auto 0;
+    background: #27ae60;
+    color: #fff;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 10px;
+    font-size: 16px;
+    cursor: pointer;
+}
+button:hover { background: #219150; }
+
+@media (max-width:600px) {
+    .seat { width:30px; height:30px; line-height:30px; font-size:12px; margin:3px; }
+    .aisle { width:20px; }
+}
+</style>
 </head>
+
 <body>
+
 <?php include __DIR__ . "/nav.php"; ?>
 
-<h2>Pilih Kursi – <?= htmlspecialchars($jadwal['nama_bus']) ?> (<?= $jadwal['tanggal'] ?>)</h2>
+<h2>
+    Pilih Kursi – <?= htmlspecialchars($jadwal['nama_bus']) ?>
+    (<?= htmlspecialchars($jadwal['tanggal']) ?>)
+</h2>
 
 <form method="POST" action="proses_booking.php">
-    <input type="hidden" name="jadwal_id" value="<?= $jadwal_id ?>">
+<input type="hidden" name="jadwal_id" value="<?= $jadwal_id ?>">
 
-    <div class="bus-container">
-        <div class="bus-top">Supir</div>
+<div class="bus-container">
+<div class="bus-top">Supir</div>
 
-        <?php
-        $rowSeats = array_chunk($seatmap, 4); 
-        foreach($rowSeats as $row):
-        ?>
-        <div class="seat-row">
-            <!-- Kursi kiri -->
-            <?php foreach(array_slice($row,0,2) as $seat):
-                $status = $seats[$seat] ?? 'kosong';
-                $disabled = ($status !== 'kosong');
-            ?>
-                <div class="seat <?= $status ?>" data-seat="<?= $seat ?>">
-                    <?= $seat ?>
-                    <input type="checkbox" name="kursi[]" value="<?= $seat ?>" style="display:none;" <?= $disabled ? 'disabled' : '' ?>>
-                </div>
-            <?php endforeach; ?>
+<?php
+$rows = array_chunk($seatmap, 4);
+foreach ($rows as $row):
+?>
+<div class="seat-row">
+<?php foreach (array_slice($row, 0, 2) as $seat):
+    $status = in_array($seat, $filled) ? 'terisi' : 'kosong';
+?>
+<div class="seat <?= $status ?>" data-seat="<?= $seat ?>">
+    <?= $seat ?>
+    <input type="radio" name="kursi" value="<?= $seat ?>" hidden <?= $status === 'terisi' ? 'disabled' : '' ?>>
+</div>
+<?php endforeach; ?>
 
-            <!-- Lorong -->
-            <div class="aisle"></div>
+<div class="aisle"></div>
 
-            <!-- Kursi kanan -->
-            <?php foreach(array_slice($row,2,2) as $seat):
-                $status = $seats[$seat] ?? 'kosong';
-                $disabled = ($status !== 'kosong');
-            ?>
-                <div class="seat <?= $status ?>" data-seat="<?= $seat ?>">
-                    <?= $seat ?>
-                    <input type="checkbox" name="kursi[]" value="<?= $seat ?>" style="display:none;" <?= $disabled ? 'disabled' : '' ?>>
-                </div>
-            <?php endforeach; ?>
-        </div>
-        <?php endforeach; ?>
-    </div>
+<?php foreach (array_slice($row, 2, 2) as $seat):
+    $status = in_array($seat, $filled) ? 'terisi' : 'kosong';
+?>
+<div class="seat <?= $status ?>" data-seat="<?= $seat ?>">
+    <?= $seat ?>
+    <input type="radio" name="kursi" value="<?= $seat ?>" hidden <?= $status === 'terisi' ? 'disabled' : '' ?>>
+</div>
+<?php endforeach; ?>
 
-    <button type="submit">Pesan</button>
+
+</div>
+<?php endforeach; ?>
+</div>
+
+<button type="submit">Pesan</button>
 </form>
+
 <?php include __DIR__ . "/footer.php"; ?>
+
 <script>
+// hanya kursi kosong yang bisa diklik
 document.querySelectorAll('.seat.kosong').forEach(seat => {
     seat.addEventListener('click', () => {
-        const checkbox = seat.querySelector('input[type="checkbox"]');
-        checkbox.checked = !checkbox.checked;
-        seat.classList.toggle('selected', checkbox.checked);
+        document.querySelectorAll('.seat.selected').forEach(s => {
+            s.classList.remove('selected');
+            s.querySelector('input').checked = false;
+        });
+
+        seat.classList.add('selected');
+        seat.querySelector('input').checked = true;
     });
 });
+
+// validasi submit
+document.querySelector('form').addEventListener('submit', e => {
+    if (!document.querySelector('input[name="kursi"]:checked')) {
+        e.preventDefault();
+        alert('Silakan pilih 1 kursi terlebih dahulu');
+    }
+});
 </script>
+
 </body>
 </html>

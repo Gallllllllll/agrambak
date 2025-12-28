@@ -2,64 +2,102 @@
 session_start();
 require "../config/database.php";
 
-function generateRefNumber() {
-    return 'TRX-' . date('Ymd') . '-' . strtoupper(substr(bin2hex(random_bytes(3)), 0, 6));
-}
-
-
 if (!isset($_SESSION["user"])) {
-    header("Location: login.php");
+    header("Location: ../login.php");
     exit;
 }
 
 $user = $_SESSION["user"];
 
-if (!isset($_GET['reservasi_id'])) {
-    die("Reservasi tidak ditemukan");
-}
+// Ambil kursi dari session
+$reservasi_id = $_GET['reservasi_id'] ?? null;
+if (!$reservasi_id) die("Reservasi tidak ditemukan.");
 
-$reservasi_id = $_GET['reservasi_id'];
-
-// Ambil data reservasi
-$stmt = $pdo->prepare("SELECT * FROM reservasi WHERE reservasi_id = ? AND user_id = ?");
+$stmt = $pdo->prepare("SELECT * FROM reservasi WHERE reservasi_id=? AND user_id=?");
 $stmt->execute([$reservasi_id, $user['user_id']]);
-$reservasi = $stmt->fetch();
+$reservasi = $stmt->fetch(PDO::FETCH_ASSOC);
+if (!$reservasi) die("Reservasi tidak ditemukan.");
 
-if (!$reservasi) die("Reservasi tidak ditemukan");
+$kursi = $_SESSION['selected_seats'][$reservasi_id] ?? [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $metode = $_POST['metode'];
-    $file = $_FILES['bukti_transfer'];
+    $file   = $_FILES['bukti_transfer'];
 
-    // Upload file
+    // ======================
+    // CEK KURSI MASIH KOSONG
+    // ======================
+    $kursi_terisi = [];
+    $stmtCheck = $pdo->prepare("SELECT status FROM seat_booking WHERE reservasi_id=? AND nomor_kursi=?");
+    foreach ($kursi as $s) {
+        $stmtCheck->execute([$reservasi_id, $s]);
+        $seat = $stmtCheck->fetch(PDO::FETCH_ASSOC);
+        if ($seat && $seat['status'] === 'terisi') {
+            $kursi_terisi[] = $s;
+        }
+    }
+
+    if (!empty($kursi_terisi)) {
+        $list = implode(", ", $kursi_terisi);
+        echo "
+        <script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
+        <script>
+        Swal.fire({
+            icon: 'error',
+            title: 'Kursi sudah terisi',
+            html: 'Kursi berikut sudah tidak tersedia: <b>$list</b>',
+            confirmButtonText: 'OK'
+        }).then(() => {
+            window.location.href='status_pemesanan.php';
+        });
+        </script>";
+        exit;
+    }
+
+    // ======================
+    // UPLOAD BUKTI TRANSFER
+    // ======================
     $nama_file = time() . "_" . basename($file['name']);
     move_uploaded_file($file['tmp_name'], "../uploads/" . $nama_file);
 
-    $jumlah = (int) $reservasi['total_harga'];
+    try {
+        $pdo->beginTransaction();
 
+        // Insert pembayaran
+        $ref_number = 'TRX-' . date('Ymd') . '-' . strtoupper(substr(bin2hex(random_bytes(3)),0,6));
+        $stmt = $pdo->prepare("
+            INSERT INTO pembayaran (reservasi_id, ref_number, metode, jumlah, bukti_transfer, status, waktu_bayar)
+            VALUES (?, ?, ?, ?, ?, 'berhasil', NOW())
+        ");
+        $stmt->execute([$reservasi_id, $ref_number, $metode, $reservasi['total_harga'], $nama_file]);
 
+        // Update seat_booking jadi terisi
+        $stmtUpdate = $pdo->prepare("
+            UPDATE seat_booking SET status='terisi' WHERE reservasi_id=? AND nomor_kursi=?
+        ");
+        foreach ($kursi as $s) {
+            $stmtUpdate->execute([$reservasi_id, $s]);
+        }
 
-    // Insert ke tabel pembayaran
-    $ref_number = generateRefNumber();
+        // Update status reservasi jadi lunas
+        $stmt = $pdo->prepare("UPDATE reservasi SET status='lunas' WHERE reservasi_id=?");
+        $stmt->execute([$reservasi_id]);
 
-    $stmt = $pdo->prepare("
-        INSERT INTO pembayaran 
-        (reservasi_id, ref_number, metode, jumlah, bukti_transfer, status, waktu_bayar)
-        VALUES (?, ?, ?, ?, ?, 'berhasil', NOW())
-    ");
-    $stmt->execute([
-        $reservasi_id,
-        $ref_number,
-        $metode,
-        $jumlah,
-        $nama_file
-    ]);
+        $pdo->commit();
 
+        // Hapus session
+        unset($_SESSION['selected_seats'][$reservasi_id]);
 
-    header("Location: status_pemesanan.php");
-    exit;
+        header("Location: status_pemesanan.php?reservasi_id=$reservasi_id");
+        exit;
+
+    } catch (Exception $e) {
+        $pdo->rollBack();
+        die("Gagal upload pembayaran: " . $e->getMessage());
+    }
 }
 ?>
+
 
 <!DOCTYPE html>
 <html lang="id">

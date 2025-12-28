@@ -287,7 +287,7 @@ body {
 <?php
 $status = $r['pembayaran_status'] ?? 'belum_bayar';
 $badgeClass = 'badge-unpaid';
-$badgeText  = 'Belum Lunas';
+$badgeText  = 'Gagal';
 
 if ($status === 'berhasil') {
     $badgeClass = 'badge-paid';
