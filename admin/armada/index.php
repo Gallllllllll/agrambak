@@ -3,172 +3,140 @@ require "../../middleware/auth.php";
 admin_required();
 require "../../config/database.php";
 
-// ================== FILTER ==================
-$q = $_GET['q'] ?? '';
-$tipe_id = $_GET['tipe_id'] ?? '';
-$sort = $_GET['sort'] ?? 'baru';
-
-// ================== PAGINATION ==================
-$limit = 5;
-$page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
-$page = max($page, 1);
-$offset = ($page - 1) * $limit;
-
-// ================== COUNT DATA ==================
-$countSql = "
-    SELECT COUNT(*) 
-    FROM bus_armada b
-    WHERE 1
-";
-$params = [];
-
-if ($q !== '') {
-    $countSql .= " AND b.nama_bus LIKE ?";
-    $params[] = "%$q%";
-}
-if ($tipe_id !== '') {
-    $countSql .= " AND b.tipe_id = ?";
-    $params[] = $tipe_id;
-}
-
-$stmt = $pdo->prepare($countSql);
-$stmt->execute($params);
-$totalData = $stmt->fetchColumn();
-$totalPage = ceil($totalData / $limit);
-
-// ================== DATA ARMADA ==================
 $sql = "
     SELECT b.*, t.nama_tipe
     FROM bus_armada b
     LEFT JOIN armada_tipe t ON b.tipe_id = t.tipe_id
-    WHERE 1
+    ORDER BY b.armada_id DESC
 ";
+$armada = $pdo->query($sql)->fetchAll();
 
-if ($q !== '') {
-    $sql .= " AND b.nama_bus LIKE ?";
-}
-if ($tipe_id !== '') {
-    $sql .= " AND b.tipe_id = ?";
-}
-
-$sql .= $sort === 'lama'
-    ? " ORDER BY b.armada_id ASC"
-    : " ORDER BY b.armada_id DESC";
-
-$sql .= " LIMIT $limit OFFSET $offset";
-
-$stmt = $pdo->prepare($sql);
-$stmt->execute($params);
-$armada = $stmt->fetchAll();
-
-// ================== TIPE BUS ==================
 $tipeBus = $pdo->query("SELECT * FROM armada_tipe")->fetchAll();
 ?>
 
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- CSS GLOBAL -->
+    <link rel="stylesheet" href="/agrambak/aset/css/dashboard_admin.css">
+    <link rel="stylesheet" href="/agrambak/aset/css/users_admin.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+    
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.5/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
     <title>Manajemen Armada Bus</title>
-    <link rel="stylesheet" href="../../aset/css/dashboard_admin.css">
-    <link rel="stylesheet" href="../../aset/css/users_admin.css">
-    <style>
-        table { border-collapse: collapse; width: 100%; }
-        th, td { border: 1px solid #333; padding: 8px; text-align: center; }
-        th { background: #f0f0f0; }
-        form { margin-bottom: 15px; }
-        input, select, button { padding: 6px; }
-        a { text-decoration: none; }
-    </style>
 </head>
 <body>
-<?php include __DIR__ . '/../sidebar.php'; ?>
+    <?php include __DIR__ . '/../sidebar.php'; ?>
 
-<h2>Manajemen Armada Bus</h2>
+    <div class="main-content">
 
-<a href="../dashboard.php">← Kembali ke Dashboard</a> |
-<a href="tambah.php" style="font-weight:bold;">+ Tambah Armada</a>
+        <div class="dashboard-header mb-4">
+            <div>
+                <h1>Manajemen Armada</h1>
+                <p>Kelola data armada bus</p>
+            </div>
+        </div>
 
+<div class="card shadow-sm">
+    <div class="card-body">
 
-<hr>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <!-- SELECT FILTER -->
+             <div class="ms-auto">
+                <a href="tambah.php" class="btn btn-primary">
+                    <i class="fa fa-plus"></i> Tambah Armada
+                </a>
+            </div>
+            <div>
+                
+                <select id="filterTipe" class="form-select">
+                    <option value="">Semua Tipe</option>
+                    <?php foreach ($tipeBus as $t): ?>
+                        <option value="<?= htmlspecialchars($t['nama_tipe']) ?>">
+                            <?= htmlspecialchars($t['nama_tipe']) ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+        </div>
 
-<!-- ================== FILTER ================== -->
-<form method="GET">
-    <input type="text" name="q" placeholder="Cari nama bus..." value="<?= htmlspecialchars($q) ?>">
+        <div class="table-responsive">
+            <table id="armadaTable" class="table table-striped align-middle">
+                <thead>
+                    <tr>
+                        <th>No</th>
+                        <th>Nama Bus</th>
+                        <th>Tipe</th>
+                        <th>Kapasitas</th>
+                        <th>Deskripsi</th>
+                        <th style="width:140px">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                <?php foreach ($armada as $i => $b): ?>
+                    <tr>
+                        <td><?= $i + 1 ?></td>
+                        <td><?= htmlspecialchars($b['nama_bus']) ?></td>
+                        <td><?= $b['nama_tipe'] ?? '-' ?></td>
+                        <td><?= $b['kapasitas'] ?></td>
+                        <td><?= htmlspecialchars($b['deskripsi'] ?? '-') ?></td>
+                        <td>
+                            <a href="edit.php?id=<?= $b['armada_id'] ?>" class="btn btn-sm btn-outline-warning">Edit</a>
+                            <a href="hapus.php?id=<?= $b['armada_id'] ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('Hapus bus ini?')">Hapus</a>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
 
-    <select name="tipe_id">
-        <option value="">-- Semua Tipe --</option>
-        <?php foreach ($tipeBus as $t): ?>
-            <option value="<?= $t['tipe_id'] ?>" <?= $tipe_id == $t['tipe_id'] ? 'selected' : '' ?>>
-                <?= $t['nama_tipe'] ?>
-            </option>
-        <?php endforeach; ?>
-    </select>
-
-    <select name="sort">
-        <option value="baru" <?= $sort == 'baru' ? 'selected' : '' ?>>Terbaru</option>
-        <option value="lama" <?= $sort == 'lama' ? 'selected' : '' ?>>Terlama</option>
-    </select>
-
-    <button type="submit">Filter</button>
-</form>
-
-<!-- ================== TABEL ================== -->
-<table>
-<thead>
-<tr>
-    <th>No</th>
-    <th>Nama Bus</th>
-    <th>Tipe</th>
-    <th>Kapasitas</th>
-    <th>Deskripsi</th>
-    <th>Aksi</th>
-</tr>
-</thead>
-
-<tbody id="data-armada">
-<?php if ($armada): ?>
-    <?php foreach ($armada as $i => $b): ?>
-    <tr>
-        <td><?= $offset + $i + 1 ?></td>
-        <td><?= htmlspecialchars($b['nama_bus']) ?></td>
-        <td><?= $b['nama_tipe'] ?? '-' ?></td>
-        <td><?= $b['kapasitas'] ?></td>
-        <td><?= htmlspecialchars($b['deskripsi']) ?></td>
-        <td>
-            <a href="edit.php?id=<?= $b['armada_id'] ?>">Edit</a> |
-            <a href="hapus.php?id=<?= $b['armada_id'] ?>" onclick="return confirm('Hapus bus ini?')">Hapus</a>
-        </td>
-    </tr>
-    <?php endforeach; ?>
-<?php else: ?>
-<tr><td colspan="6">Data tidak ditemukan</td></tr>
-<?php endif; ?>
-</tbody>
-</table>
-
-<!-- ================== PAGINATION ================== -->
-<?php if ($totalPage > 1): ?>
-<div style="margin-top:15px;">
-<?php for ($i = 1; $i <= $totalPage; $i++): ?>
-    <a href="?page=<?= $i ?>&q=<?= urlencode($q) ?>&tipe_id=<?= $tipe_id ?>&sort=<?= $sort ?>"
-       style="<?= $page == $i ? 'font-weight:bold;' : '' ?>">
-        <?= $i ?>
-    </a>
-<?php endfor; ?>
+    </div>
 </div>
-<?php endif; ?>
 
-<!-- ================== LIVE SEARCH ================== -->
+
+</div>
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+
 <script>
-const searchInput = document.querySelector('input[name="q"]');
-const tableBody = document.getElementById('data-armada');
+$(function () {
+    // Inisialisasi DataTable
+    const table = $('#armadaTable').DataTable({
+        pageLength: 10,
+        lengthChange: false,
+        ordering: true,
+        language: {
+            search: "Cari:",
+            info: "Menampilkan _START_ - _END_ dari _TOTAL_ armada",
+            zeroRecords: "Data tidak ditemukan",
+            paginate: { previous: "‹", next: "›" }
+        },
+        initComplete: function () {
+            // Pindahkan filter Tipe Bus ke samping search box
+            const dataTableContainer = $(this.api().table().container());
+            $('#filterTipe').appendTo(dataTableContainer.find('.dataTables_filter')).css({
+                display: 'inline-block',
+                width: 'auto',
+                marginLeft: '10px'
+            });
+        }
+    });
 
-searchInput.addEventListener('keyup', function () {
-    fetch('ajax_list.php?q=' + encodeURIComponent(this.value))
-        .then(res => res.text())
-        .then(html => tableBody.innerHTML = html);
+    // Filter kolom Tipe Bus
+    $('#filterTipe').on('change', function () {
+        table.column(2).search(this.value).draw();
+    });
 });
 </script>
+
 
 </body>
 </html>

@@ -1,4 +1,5 @@
 <?php
+$currentUri = $_SERVER['REQUEST_URI'];
 $currentPage = basename($_SERVER['PHP_SELF']);
 require_once __DIR__ . '/../config/base_url.php';
 ?>
@@ -16,42 +17,44 @@ require_once __DIR__ . '/../config/base_url.php';
 
     <ul class="sidebar-menu">
         <li>
-            <a href="<?= $BASE_URL ?>/admin/dashboard.php"
-               class="<?= $currentPage == 'dashboard.php' ? 'active' : '' ?>">
+            <a href="/agrambak/admin/dashboard.php" class="<?= strpos($currentUri, '/admin/dashboard.php') !== false ? 'active' : '' ?>">
                 <i class="fa-solid fa-house"></i>
                 <span>Dashboard</span>
             </a>
         </li>
 
         <li>
-            <a href="<?= $BASE_URL ?>/admin/users/index.php"
-               class="<?= str_contains($_SERVER['REQUEST_URI'], '/users/') ? 'active' : '' ?>">
+            <a href="/agrambak/admin/users/index.php" class="<?= strpos($currentUri, '/admin/users/') !== false ? 'active' : '' ?>"">
                 <i class="fa-solid fa-users"></i>
                 <span>User</span>
             </a>
         </li>
 
         <li>
-            <a href="<?= $BASE_URL ?>/admin/armada/index.php"
-               class="<?= str_contains($_SERVER['REQUEST_URI'], '/armada/') ? 'active' : '' ?>">
+            <a href="/agrambak/admin/armada/index.php" class="<?= strpos($currentUri, '/admin/armada/') !== false ? 'active' : '' ?>">
                 <i class="fa-solid fa-bus-side"></i>
                 <span>Armada</span>
             </a>
         </li>
 
         <li>
-            <a href="<?= $BASE_URL ?>/admin/rute/index.php"
-               class="<?= str_contains($_SERVER['REQUEST_URI'], '/rute/') ? 'active' : '' ?>">
+            <a href="/agrambak/admin/rute/index.php" class="<?= strpos($currentUri, '/admin/rute/') !== false ? 'active' : '' ?>">
                 <i class="fa-solid fa-map-location-dot"></i>
                 <span>Rute</span>
             </a>
         </li>
 
         <li>
-            <a href="<?= $BASE_URL ?>/admin/jadwal/index.php"
-               class="<?= str_contains($_SERVER['REQUEST_URI'], '/jadwal/') ? 'active' : '' ?>">
+            <a href="/agrambak/admin/jadwal/index.php" class="<?= strpos($currentUri, '/admin/jadwal/') !== false ? 'active' : '' ?>">
                 <i class="fa-solid fa-calendar-days"></i>
                 <span>Jadwal</span>
+            </a>
+        </li>
+
+        <li>
+            <a href="/agrambak/admin/konfirmasi_refund.php" class="<?= strpos($currentUri, '/admin/konfirmasi_refund.php') !== false ? 'active' : '' ?>">
+                <i class="fa-solid fa-money-bill-transfer"></i>
+                <span>Refund</span>
             </a>
         </li>
 
@@ -60,14 +63,6 @@ require_once __DIR__ . '/../config/base_url.php';
                class="<?= str_contains($_SERVER['REQUEST_URI'], '/blog/') ? 'active' : '' ?>">
                 <i class="fa-solid fa-newspaper"></i>
                 <span>Blog</span>
-            </a>
-        </li>
-
-        <li>
-            <a href="<?= $BASE_URL ?>/konfirmasi_refund.php"
-               class="<?= str_contains($_SERVER['REQUEST_URI'], 'konfirmasi_refund.php') ? 'active' : '' ?>">
-                <i class="fa-solid fa-money-bill-transfer"></i>
-                <span>Refund</span>
             </a>
         </li>
 

@@ -3,6 +3,10 @@ require "../../middleware/auth.php";
 admin_required();
 require "../../config/database.php";
 
+function fv($value) {
+    return htmlspecialchars($value ?? '');
+}
+
 $id = $_GET['id'];
 
 if ($_POST) {
@@ -62,25 +66,25 @@ $user = $user->fetch();
                 <div class="col-md-6">
                     <label class="form-label">Nama Lengkap</label>
                     <input type="text" name="nama" class="form-control"
-                           value="<?= htmlspecialchars($user['nama']) ?>" required>
+                           value="<?= fv($user['nama']) ?>" required>
                 </div>
 
                 <div class="col-md-6">
                     <label class="form-label">Email</label>
                     <input type="email" name="email" class="form-control"
-                           value="<?= htmlspecialchars($user['email']) ?>" required>
+                           value="<?= fv($user['email']) ?>" required>
                 </div>
 
                 <div class="col-md-6">
                     <label class="form-label">Telepon</label>
                     <input type="text" name="telepon" class="form-control"
-                           value="<?= htmlspecialchars($user['telepon']) ?>">
+                           value="<?= fv($user['telepon']) ?>">
                 </div>
 
                 <div class="col-md-6">
                     <label class="form-label">Alamat</label>
                     <input type="text" name="alamat" class="form-control"
-                           value="<?= htmlspecialchars($user['alamat']) ?>" required>
+                           value="<?= fv($user['alamat']) ?>" required>
                 </div>
 
                 <div class="col-md-6">
@@ -93,11 +97,11 @@ $user = $user->fetch();
 
                 <div class="col-12 d-flex justify-content-between mt-4">
                     <a href="index.php" class="btn btn-light">
-                        ← Kembali
+                        <i class="fa-solid fa-arrow-left"></i> Kembali
                     </a>
 
-                    <button type="submit" class="btn btn-primary px-4">
-                        Simpan Perubahan
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fa fa-save me-1"></i> Simpan Perubahan
                     </button>
                 </div>
 

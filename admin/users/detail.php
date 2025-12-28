@@ -3,6 +3,12 @@ require "../../middleware/auth.php";
 admin_required();
 require __DIR__ . '/../../config/database.php';
 
+function e($value, $fallback = '<span class="text-muted fst-italic">Belum diisi</span>') {
+    return $value !== null && $value !== ''
+        ? htmlspecialchars($value)
+        : $fallback;
+}
+
 $id = $_GET['id'];
 
 $user = $pdo->prepare("SELECT * FROM users WHERE user_id=?");
@@ -56,25 +62,25 @@ $riwayat->execute([$id]);
             <div class="row mb-2">
                 <div class="col-md-3 text-muted">Nama</div>
                 <div class="col-md-9 fw-semibold">
-                    <?= htmlspecialchars($user['nama']) ?>
+                    <?= e($user['nama']) ?>
                 </div>
             </div>
             <div class="row mb-2">
                 <div class="col-md-3 text-muted">Email</div>
                 <div class="col-md-9">
-                    <?= htmlspecialchars($user['email']) ?>
+                    <?= e($user['email']) ?>
                 </div>
             </div>
             <div class="row mb-2">
                 <div class="col-md-3 text-muted">Telepon</div>
                 <div class="col-md-9">
-                    <?= htmlspecialchars($user['telepon']) ?>
+                    <?= e($user['telepon']) ?>
                 </div>
             </div>
             <div class="row mb-2">
                 <div class="col-md-3 text-muted">Alamat</div>
                 <div class="col-md-9">
-                    <?= htmlspecialchars($user['alamat']) ?>
+                    <?= e($user['alamat']) ?>
                 </div>
             </div>
             <div class="row">

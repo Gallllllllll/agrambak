@@ -147,7 +147,8 @@ Highcharts.chart('chartReservasi', {
 Highcharts.chart('chartPendapatan', {
     chart: {
         type: 'spline',
-        backgroundColor: 'transparent'
+        backgroundColor: 'transparent',
+        color: '#8bc34a'
     },
 
     title: {
