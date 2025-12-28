@@ -9,7 +9,10 @@ if (session_status() === PHP_SESSION_NONE) {
 $userLogin = $_SESSION['user'] ?? null;
 
 // Base URL proyek
-$baseUrl = '/UAS/bus-ticket'; // sesuaikan dengan struktur folder
+$baseUrl = (
+    (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http'
+) . '://' . $_SERVER['HTTP_HOST']
+  . rtrim(dirname($_SERVER['SCRIPT_NAME']), '/\\');
 
 // Default
 $profileImg = null;
@@ -30,14 +33,14 @@ if ($userLogin && isset($userLogin['user_id'])) {
 }
 
 // Jika foto tidak ada, pakai default avatar
-$profileImgPath = $profileImg ? $baseUrl.'/uploads/'.htmlspecialchars($profileImg) 
-                              : $baseUrl.'/aset/img/default-avatar.png';
+$profileImgPath = $profileImg ? $baseUrl.'/../uploads/'.htmlspecialchars($profileImg) 
+                              : $baseUrl.'/../aset/img/default-avatar.png';
 ?>
 
 <nav class="navbar">
     <div class="logo">
         <!-- Gunakan path absolut -->
-        <img src="<?= $baseUrl ?>/aset/img/logo-tranzio.png" alt="Tranzio">
+        <img src="<?= $baseUrl ?>/../aset/img/logo-tranzio.png" alt="Tranzio">
     </div>
 
     <!-- MENU DESKTOP -->
