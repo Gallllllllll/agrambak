@@ -1,130 +1,187 @@
 <?php
-require __DIR__ . '/../../config/database.php'; // sesuaikan path
+require __DIR__ . '/../../config/database.php';
 
-// Ambil list terminal untuk dropdown
-$terminals = $pdo->query("SELECT terminal_id, nama_terminal FROM terminal ORDER BY nama_terminal ASC")->fetchAll();
+/*
+|--------------------------------------------------------------------------
+| DATA TERMINAL (UNTUK DROPDOWN FILTER)
+|--------------------------------------------------------------------------
+*/
+$terminals = $pdo->query("
+    SELECT terminal_id, nama_terminal, kota, kode
+    FROM terminal
+    ORDER BY nama_terminal ASC
+")->fetchAll();
 
-// Filter
-$asalFilter = isset($_GET['asal']) ? (int)$_GET['asal'] : '';
-$tujuanFilter = isset($_GET['tujuan']) ? (int)$_GET['tujuan'] : '';
+/*
+|--------------------------------------------------------------------------
+| DATA RUTE (UNTUK TABEL)
+| NOTE: Filter dilakukan via DataTables (client-side)
+|--------------------------------------------------------------------------
+*/
+$rutes = $pdo->query("
+    SELECT
+        r.rute_id,
 
-// Pagination
-$limit = 10;
-$page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
-$start = ($page > 1) ? ($page - 1) * $limit : 0;
+        t1.nama_terminal AS asal_terminal,
+        t1.kota AS asal_kota,
+        t1.kode AS asal_kode,
 
-// Query dengan filter
-$where = [];
-$params = [];
-if ($asalFilter) {
-    $where[] = "r.asal_id = :asal";
-    $params[':asal'] = $asalFilter;
-}
-if ($tujuanFilter) {
-    $where[] = "r.tujuan_id = :tujuan";
-    $params[':tujuan'] = $tujuanFilter;
-}
+        t2.nama_terminal AS tujuan_terminal,
+        t2.kota AS tujuan_kota,
+        t2.kode AS tujuan_kode
 
-$whereSQL = '';
-if ($where) {
-    $whereSQL = "WHERE " . implode(" AND ", $where);
-}
-
-// Ambil total data dengan filter
-$stmtTotal = $pdo->prepare("SELECT COUNT(*) as total FROM rute r $whereSQL");
-$stmtTotal->execute($params);
-$totalData = $stmtTotal->fetch()['total'];
-$totalPages = ceil($totalData / $limit);
-
-// Ambil data rute dengan filter dan pagination
-$stmt = $pdo->prepare("
-    SELECT r.rute_id, t1.nama_terminal AS asal, t2.nama_terminal AS tujuan
     FROM rute r
     JOIN terminal t1 ON r.asal_id = t1.terminal_id
     JOIN terminal t2 ON r.tujuan_id = t2.terminal_id
-    $whereSQL
     ORDER BY r.rute_id ASC
-    LIMIT :start, :limit
-");
-foreach ($params as $key => $val) {
-    $stmt->bindValue($key, $val, PDO::PARAM_INT);
-}
-$stmt->bindValue(':start', $start, PDO::PARAM_INT);
-$stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
-$stmt->execute();
-$rutes = $stmt->fetchAll();
+")->fetchAll();
 ?>
-
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Data Rute</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="/agrambak/aset/css/dashboard_admin.css">
+    <link rel="stylesheet" href="/agrambak/aset/css/users_admin.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.5/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css">
+
+    <title>Manajemen Rute</title>
 </head>
 <body>
-    <h1>Daftar Rute</h1>
-    <a href="create.php">Tambah Rute</a>
 
-    <!-- Form Filter -->
-    <form method="GET" style="margin-top:20px;">
-        Asal:
-        <select name="asal">
-            <option value="">-- Semua --</option>
-            <?php foreach($terminals as $t): ?>
-                <option value="<?= $t['terminal_id'] ?>" <?= ($asalFilter == $t['terminal_id']) ? 'selected' : '' ?>>
-                    <?= $t['nama_terminal'] ?>
-                </option>
-            <?php endforeach; ?>
-        </select>
-        Tujuan:
-        <select name="tujuan">
-            <option value="">-- Semua --</option>
-            <?php foreach($terminals as $t): ?>
-                <option value="<?= $t['terminal_id'] ?>" <?= ($tujuanFilter == $t['terminal_id']) ? 'selected' : '' ?>>
-                    <?= $t['nama_terminal'] ?>
-                </option>
-            <?php endforeach; ?>
-        </select>
-        <button type="submit">Filter</button>
-    </form>
+<?php include __DIR__ . '/../sidebar.php'; ?>
 
-    <table border="1" cellpadding="10" cellspacing="0" style="margin-top:20px;">
-        <tr>
-            <th>ID</th>
-            <th>Asal</th>
-            <th>Tujuan</th>
-            <th>Aksi</th>
-        </tr>
-        <?php foreach ($rutes as $rute): ?>
-        <tr>
-            <td><?= $rute['rute_id'] ?></td>
-            <td><?= $rute['asal'] ?></td>
-            <td><?= $rute['tujuan'] ?></td>
-            <td>
-                <a href="edit.php?id=<?= $rute['rute_id'] ?>">Edit</a> |
-                <a href="delete.php?id=<?= $rute['rute_id'] ?>" onclick="return confirm('Yakin ingin hapus?')">Hapus</a>
-            </td>
-        </tr>
-        <?php endforeach; ?>
-    </table>
+<div class="main-content">
 
-    <!-- Pagination -->
-    <div style="margin-top:20px;">
-        <?php if($page > 1): ?>
-            <a href="?page=<?= $page - 1 ?>&asal=<?= $asalFilter ?>&tujuan=<?= $tujuanFilter ?>">Prev</a>
-        <?php endif; ?>
-
-        <?php for($i=1; $i <= $totalPages; $i++): ?>
-            <?php if($i == $page): ?>
-                <strong><?= $i ?></strong>
-            <?php else: ?>
-                <a href="?page=<?= $i ?>&asal=<?= $asalFilter ?>&tujuan=<?= $tujuanFilter ?>"><?= $i ?></a>
-            <?php endif; ?>
-        <?php endfor; ?>
-
-        <?php if($page < $totalPages): ?>
-            <a href="?page=<?= $page + 1 ?>&asal=<?= $asalFilter ?>&tujuan=<?= $tujuanFilter ?>">Next</a>
-        <?php endif; ?>
+    <!-- HEADER -->
+    <div class="dashboard-header mb-4">
+        <div>
+            <h1>Daftar Rute</h1>
+            <p>Kelola rute perjalanan bus</p>
+        </div>
     </div>
+
+    <!-- CARD -->
+    <div class="card shadow-sm">
+        <div class="card-body">
+
+            <!-- ACTION BAR -->
+            <div class="d-flex align-items-center gap-2 mb-3 flex-wrap">
+                <a href="tambah.php" class="btn btn-primary">
+                    <i class="fa fa-plus"></i> Tambah Rute
+                </a>
+
+                <span class="fw-semibold ms-2">Filter:</span>
+
+                <!-- FILTER ASAL -->
+                <select id="filterAsal" class="form-select w-auto">
+                    <option value="">Semua Asal</option>
+                    <?php foreach ($terminals as $t): ?>
+                        <option value="<?= htmlspecialchars($t['nama_terminal']) ?>">
+                            <?= htmlspecialchars($t['nama_terminal']) ?>
+                            (<?= htmlspecialchars($t['kota']) ?> - <?= htmlspecialchars($t['kode']) ?>)
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+
+                <!-- FILTER TUJUAN -->
+                <select id="filterTujuan" class="form-select w-auto">
+                    <option value="">Semua Tujuan</option>
+                    <?php foreach ($terminals as $t): ?>
+                        <option value="<?= htmlspecialchars($t['nama_terminal']) ?>">
+                            <?= htmlspecialchars($t['nama_terminal']) ?>
+                            (<?= htmlspecialchars($t['kota']) ?> - <?= htmlspecialchars($t['kode']) ?>)
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+
+            <!-- TABLE -->
+            <div class="table-responsive">
+                <table id="ruteTable" class="table table-striped align-middle">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Asal</th>
+                            <th>Tujuan</th>
+                            <th style="width:160px">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($rutes as $r): ?>
+                        <tr>
+                            <td><?= $r['rute_id'] ?></td>
+                            <td>
+                                <strong><?= htmlspecialchars($r['asal_terminal']) ?></strong><br>
+                                <small class="text-muted">
+                                    <?= htmlspecialchars($r['asal_kota']) ?> (<?= htmlspecialchars($r['asal_kode']) ?>)
+                                </small>
+                            </td>
+                            <td>
+                                <strong><?= htmlspecialchars($r['tujuan_terminal']) ?></strong><br>
+                                <small class="text-muted">
+                                    <?= htmlspecialchars($r['tujuan_kota']) ?> (<?= htmlspecialchars($r['tujuan_kode']) ?>)
+                                </small>
+                            </td>
+                            <td>
+                                <a href="edit.php?id=<?= $r['rute_id'] ?>" class="btn btn-sm btn-outline-warning">
+                                    Edit
+                                </a>
+                                <a href="delete.php?id=<?= $r['rute_id'] ?>"
+                                   class="btn btn-sm btn-outline-danger"
+                                   onclick="return confirm('Yakin ingin hapus rute ini?')">
+                                   Hapus
+                                </a>
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+<!-- JS -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+
+<script>
+$(function () {
+    const table = $('#ruteTable').DataTable({
+        pageLength: 10,
+        lengthChange: false,
+        ordering: true,
+        language: {
+            search: "Cari:",
+            info: "Menampilkan _START_ - _END_ dari _TOTAL_ rute",
+            zeroRecords: "Rute tidak ditemukan",
+            paginate: {
+                previous: "‹",
+                next: "›"
+            }
+        }
+    });
+
+    // Filter Asal (kolom 1)
+    $('#filterAsal').on('change', function () {
+        table.column(1).search(this.value).draw();
+    });
+
+    // Filter Tujuan (kolom 2)
+    $('#filterTujuan').on('change', function () {
+        table.column(2).search(this.value).draw();
+    });
+});
+</script>
+
 </body>
 </html>
