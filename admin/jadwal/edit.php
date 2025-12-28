@@ -4,7 +4,33 @@ admin_required();
 require "../../config/database.php";
 
 /* =======================
-   AMBIL DATA RUTE
+   VALIDASI ID
+======================= */
+$id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+if (!$id) {
+    header("Location: index.php");
+    exit;
+}
+
+/* =======================
+   AMBIL DATA JADWAL
+======================= */
+$stmt = $pdo->prepare("
+    SELECT j.*, ba.kapasitas AS kapasitas_lama
+    FROM jadwal j
+    JOIN bus_armada ba ON j.armada_id = ba.armada_id
+    WHERE j.jadwal_id = ?
+");
+$stmt->execute([$id]);
+$jadwal = $stmt->fetch();
+
+if (!$jadwal) {
+    header("Location: index.php");
+    exit;
+}
+
+/* =======================
+   AMBIL LIST RUTE
 ======================= */
 $rutes = $pdo->query("
     SELECT r.rute_id,
@@ -13,11 +39,11 @@ $rutes = $pdo->query("
     FROM rute r
     JOIN terminal ta ON r.asal_id = ta.terminal_id
     JOIN terminal tt ON r.tujuan_id = tt.terminal_id
-    ORDER BY ta.nama_terminal, tt.nama_terminal
+    ORDER BY asal, tujuan
 ")->fetchAll();
 
 /* =======================
-   AMBIL DATA ARMADA
+   AMBIL LIST ARMADA
 ======================= */
 $armadas = $pdo->query("
     SELECT armada_id, nama_bus, kapasitas
@@ -28,7 +54,7 @@ $armadas = $pdo->query("
 $error = '';
 
 /* =======================
-   SIMPAN DATA
+   PROSES UPDATE
 ======================= */
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
@@ -39,44 +65,59 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $jam_tiba      = $_POST['jam_tiba'];
     $harga         = (int) $_POST['harga'];
 
-    /* =======================
-       VALIDASI DASAR
-    ======================= */
     if ($jam_tiba <= $jam_berangkat) {
         $error = "Jam tiba harus lebih besar dari jam berangkat.";
     } else {
 
-        // Ambil kapasitas armada
+        /* =======================
+           AMBIL KAPASITAS ARMADA BARU
+        ======================= */
         $stmtArmada = $pdo->prepare("
-            SELECT kapasitas 
-            FROM bus_armada 
-            WHERE armada_id = ?
+            SELECT kapasitas FROM bus_armada WHERE armada_id = ?
         ");
         $stmtArmada->execute([$armada_id]);
-        $kapasitas = $stmtArmada->fetchColumn();
+        $kapasitas_baru = $stmtArmada->fetchColumn();
 
-        if (!$kapasitas || $kapasitas <= 0) {
-            $error = "Armada tidak valid atau kapasitas kosong.";
+        if (!$kapasitas_baru) {
+            $error = "Armada tidak valid.";
         } else {
 
-            // INSERT jadwal (kursi_tersedia = kapasitas)
-            $stmt = $pdo->prepare("
-                INSERT INTO jadwal
-                (rute_id, armada_id, tanggal, jam_berangkat, jam_tiba, harga, kursi_tersedia)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
-            ");
-            $stmt->execute([
-                $rute_id,
-                $armada_id,
-                $tanggal,
-                $jam_berangkat,
-                $jam_tiba,
-                $harga,
-                $kapasitas
-            ]);
+            // Hitung kursi terpakai
+            $kursi_terpakai = $jadwal['kapasitas_lama'] - $jadwal['kursi_tersedia'];
+            $kursi_tersedia_baru = $kapasitas_baru - $kursi_terpakai;
 
-            header("Location: index.php");
-            exit;
+            if ($kursi_tersedia_baru < 0) {
+                $error = "Armada baru tidak mencukupi jumlah reservasi yang sudah ada.";
+            } else {
+
+                /* =======================
+                   UPDATE DATA
+                ======================= */
+                $stmt = $pdo->prepare("
+                    UPDATE jadwal SET
+                        rute_id = ?,
+                        armada_id = ?,
+                        tanggal = ?,
+                        jam_berangkat = ?,
+                        jam_tiba = ?,
+                        harga = ?,
+                        kursi_tersedia = ?
+                    WHERE jadwal_id = ?
+                ");
+                $stmt->execute([
+                    $rute_id,
+                    $armada_id,
+                    $tanggal,
+                    $jam_berangkat,
+                    $jam_tiba,
+                    $harga,
+                    $kursi_tersedia_baru,
+                    $id
+                ]);
+
+                header("Location: index.php");
+                exit;
+            }
         }
     }
 }
@@ -86,7 +127,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Tambah Jadwal</title>
+    <title>Edit Jadwal</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <!-- CSS -->
@@ -100,15 +141,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <div class="main-content">
 
-    <!-- HEADER -->
     <div class="dashboard-header mb-4">
         <div>
-            <h1>Tambah Jadwal</h1>
-            <p>Buat jadwal keberangkatan bus baru</p>
+            <h1>Edit Jadwal</h1>
+            <p>Perbarui jadwal keberangkatan bus</p>
         </div>
     </div>
 
-    <!-- FORM CARD -->
     <div class="card shadow-sm">
         <div class="card-body">
 
@@ -123,9 +162,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="col-md-6">
                     <label class="form-label fw-semibold">Rute</label>
                     <select name="rute_id" class="form-select" required>
-                        <option value="">-- Pilih Rute --</option>
                         <?php foreach ($rutes as $r): ?>
-                            <option value="<?= $r['rute_id'] ?>">
+                            <option value="<?= $r['rute_id'] ?>"
+                                <?= $r['rute_id'] == $jadwal['rute_id'] ? 'selected' : '' ?>>
                                 <?= htmlspecialchars($r['asal']) ?> → <?= htmlspecialchars($r['tujuan']) ?>
                             </option>
                         <?php endforeach; ?>
@@ -135,9 +174,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="col-md-6">
                     <label class="form-label fw-semibold">Armada</label>
                     <select name="armada_id" class="form-select" required>
-                        <option value="">-- Pilih Armada --</option>
                         <?php foreach ($armadas as $a): ?>
-                            <option value="<?= $a['armada_id'] ?>">
+                            <option value="<?= $a['armada_id'] ?>"
+                                <?= $a['armada_id'] == $jadwal['armada_id'] ? 'selected' : '' ?>>
                                 <?= htmlspecialchars($a['nama_bus']) ?> | <?= $a['kapasitas'] ?> kursi
                             </option>
                         <?php endforeach; ?>
@@ -146,36 +185,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 <div class="col-md-4">
                     <label class="form-label fw-semibold">Tanggal</label>
-                    <input type="date" name="tanggal" class="form-control" required>
+                    <input type="date" name="tanggal" class="form-control"
+                           value="<?= $jadwal['tanggal'] ?>" required>
                 </div>
 
                 <div class="col-md-4">
                     <label class="form-label fw-semibold">Jam Berangkat</label>
-                    <input type="time" name="jam_berangkat" class="form-control" required>
+                    <input type="time" name="jam_berangkat" class="form-control"
+                           value="<?= substr($jadwal['jam_berangkat'], 0, 5) ?>" required>
                 </div>
 
                 <div class="col-md-4">
                     <label class="form-label fw-semibold">Jam Tiba</label>
-                    <input type="time" name="jam_tiba" class="form-control" required>
+                    <input type="time" name="jam_tiba" class="form-control"
+                           value="<?= substr($jadwal['jam_tiba'], 0, 5) ?>" required>
                 </div>
 
                 <div class="col-md-6">
                     <label class="form-label fw-semibold">Harga</label>
-                    <input type="number"
-                           name="harga"
-                           class="form-control"
-                           min="0"
-                           step="10000"
-                           required>
+                    <input type="number" name="harga" class="form-control"
+                           value="<?= $jadwal['harga'] ?>" required>
                 </div>
 
-                <!-- ACTION -->
                 <div class="col-12 d-flex justify-content-between mt-4">
                     <a href="index.php" class="btn btn-light">
                         <i class="fa-solid fa-arrow-left"></i> Kembali
                     </a>
                     <button type="submit" class="btn btn-primary">
-                        <i class="fa fa-save"></i> Simpan Jadwal
+                        <i class="fa fa-save"></i> Simpan Perubahan
                     </button>
                 </div>
 

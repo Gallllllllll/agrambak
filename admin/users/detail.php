@@ -133,8 +133,8 @@ $riwayat->execute([$id]);
 
 
     <div class="mt-4">
-        <a href="index.php" class="btn btn-outline-secondary">
-            ← Kembali ke Manajemen User
+        <a href="index.php" class="btn btn-light">
+            <i class="fa-solid fa-arrow-left"></i> Kembali
         </a>
     </div>
 
