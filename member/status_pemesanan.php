@@ -70,6 +70,7 @@ $reservasi = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Tiket Saya</title>
+<link rel="stylesheet" href="../aset/css/nav.css">
 
 <style>
 * { box-sizing: border-box; }
@@ -200,7 +201,7 @@ body {
 
 <body>
 
-<?php include "../partials/navbar.php"; ?>
+<?php include __DIR__ . "/nav.php"; ?>
 
 <div class="container">
 
@@ -254,19 +255,22 @@ if (!empty($r['waktu_checkin'])) {
     <div class="ticket-actions">
         <a href="detail_reservasi.php?reservasi_id=<?= $r['reservasi_id'] ?>" class="btn btn-detail">Detail</a>
 
-        <?php if (empty($r['waktu_checkin'])): ?>
-        <form method="POST">
-            <input type="hidden" name="checkin_reservasi_id" value="<?= $r['reservasi_id'] ?>">
-            <button class="btn btn-checkin">Check-In</button>
-        </form>
+        <?php if ($status === 'berhasil' && empty($r['waktu_checkin'])): ?>
+            <form method="POST" style="display:inline;">
+                <input type="hidden" name="checkin_reservasi_id" value="<?= $r['reservasi_id'] ?>">
+                <button class="btn btn-checkin">Check-In</button>
+            </form>
+        <?php else: ?>
+            <button class="btn btn-disabled" disabled>Check-In</button>
         <?php endif; ?>
 
-        <?php if (empty($r['waktu_checkin'])): ?>
+        <?php if ($status === 'berhasil' && empty($r['waktu_checkin'])): ?>
             <a href="ajukan_refund.php?reservasi_id=<?= $r['reservasi_id'] ?>" class="btn btn-refund">Refund</a>
         <?php else: ?>
             <button class="btn btn-disabled" disabled>Refund</button>
         <?php endif; ?>
     </div>
+
 
 </div>
 

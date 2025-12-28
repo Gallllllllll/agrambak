@@ -27,7 +27,7 @@ $stmt = $pdo->prepare("
         )
     WHERE r.reservasi_id = ? AND r.user_id = ?
 ");
-$stmt->execute([$reservasi_id, $user['id']]);
+$stmt->execute([$reservasi_id, $user['user_id']]);
 $data = $stmt->fetch(PDO::FETCH_ASSOC);
 
 if (!$data) die("Data tidak ditemukan.");
@@ -63,6 +63,10 @@ if ($data['pembayaran_status'] !== 'berhasil') die("Pembayaran belum LUNAS, tike
     <p style="text-align:center;">Silakan tunjukkan tiket ini saat naik bus</p>
     <div style="text-align:center;">
         <button onclick="window.print()">🖨️ Cetak Tiket</button>
+        
+    </div>
+    <div style="text-align:center;">
+        <button onclick="window.location.href='status_pemesanan.php'">← Kembali</button>
     </div>
 </div>
 

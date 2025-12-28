@@ -62,13 +62,96 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 ?>
 
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
-    <title>Upload Pembayaran</title>
+<meta charset="UTF-8">
+<title>Upload Pembayaran - <?= $reservasi['kode_booking'] ?></title>
+<link rel="stylesheet" href="../aset/css/nav.css">
+<style>
+body {
+    background: #2f405a;
+    color: #333;
+}
+
+h2 {
+    color: #fff;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+a {
+    color: #3498db;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+form {
+    max-width: 600px;
+    margin: 0 auto;
+    background: #fff;
+    padding: 20px 25px;
+    border-radius: 15px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+    border: 1px solid #ddd;
+}
+
+label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: #2c3e50;
+}
+
+input[type="file"],
+select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 14px;
+    margin-bottom: 15px;
+    transition: border-color 0.2s;
+}
+
+input[type="file"]:focus,
+select:focus {
+    border-color: #3498db;
+    outline: none;
+}
+
+button {
+    display: block;
+    width: 100%;
+    background: #27ae60;
+    color: #fff;
+    border: none;
+    padding: 12px;
+    border-radius: 10px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background 0.2s;
+    font-weight: bold;
+}
+
+button:hover {
+    background: #219150;
+}
+
+@media(max-width:600px){
+    form {
+        padding: 15px;
+    }
+}
+</style>
 </head>
 <body>
-<h2>Upload Pembayaran - <?= $reservasi['kode_booking'] ?></h2>
-<a href="status_pemesanan.php">← Kembali</a>
+<?php include __DIR__ . "/nav.php"; ?>
+
+<h2>Upload Pembayaran - <?= htmlspecialchars($reservasi['kode_booking']) ?></h2>
 <br><br>
 
 <form method="POST" enctype="multipart/form-data">
@@ -78,10 +161,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <option value="ovo">OVO</option>
         <option value="gopay">GoPay</option>
     </select>
-    <br><br>
+
     <label>Bukti Transfer:</label>
     <input type="file" name="bukti_transfer" required>
-    <br><br>
+
     <button type="submit">Upload</button>
 </form>
 </body>

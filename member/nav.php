@@ -1,23 +1,57 @@
-<nav class="navbar">
-    <!-- BURGER DI KIRI -->
-    
+<?php
+// NAVBAR REUSABLE
+// Pastikan session sudah dimulai, jika belum, mulai session
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
+// Ambil user login
+$userLogin = $_SESSION['user'] ?? null;
+
+// Base URL proyek
+$baseUrl = '/UAS/bus-ticket'; // sesuaikan dengan struktur folder
+
+// Default
+$profileImg = null;
+$userName = 'U';
+
+// Jika user login, ambil data dari database
+if ($userLogin && isset($userLogin['user_id'])) {
+    require_once __DIR__ . '/../config/database.php';
+
+    $stmt = $pdo->prepare("SELECT foto, nama FROM users WHERE user_id = ?");
+    $stmt->execute([$userLogin['user_id']]);
+    $userData = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if ($userData) {
+        $profileImg = $userData['foto'] ?: null;
+        $userName = $userData['nama'] ?: 'U';
+    }
+}
+
+// Jika foto tidak ada, pakai default avatar
+$profileImgPath = $profileImg ? $baseUrl.'/uploads/'.htmlspecialchars($profileImg) 
+                              : $baseUrl.'/aset/img/default-avatar.png';
+?>
+
+<nav class="navbar">
     <div class="logo">
-        <img src="../aset/img/logo-tranzio.png" alt="Tranzio">
+        <!-- Gunakan path absolut -->
+        <img src="<?= $baseUrl ?>/aset/img/logo-tranzio.png" alt="Tranzio">
     </div>
 
     <!-- MENU DESKTOP -->
     <ul class="menu desktop-menu">
-        <li><a href="dashboard.php">Dashboard</a></li>
-        <li><a href="status_pemesanan.php">Tiket Saya</a></li>
+        <li><a href="<?= $baseUrl ?>/member/dashboard.php">Dashboard</a></li>
+        <li><a href="<?= $baseUrl ?>/member/status_pemesanan.php">Tiket Saya</a></li>
         <li><a href="#">Tentang Kami</a></li>
-        <li><a href="../auth/logout.php">Logout</a></li>
+        <li><a href="<?= $baseUrl ?>/auth/logout.php">Logout</a></li>
     </ul>
 
     <!-- PROFILE DESKTOP -->
     <div class="profile desktop-profile">
-        <a href="user.php">
-            <img src="../aset/icon/profile.png" alt="User">
+        <a href="<?= $baseUrl ?>/member/akun/index.php">
+            <img src="<?= $profileImgPath ?>" alt="Foto Profil User">
         </a>
     </div>
 
@@ -31,16 +65,16 @@
 <!-- OFFCANVAS MENU (MOBILE) -->
 <div class="side-menu" id="sideMenu">
     <div class="side-profile">
-        <img src="../aset/icon/profile.png" alt="User">
+        <img src="<?= $profileImgPath ?>" alt="Foto Profil User">
         <p>My Account</p>
     </div>
 
     <ul>
-        <li><a href="dashboard.php">Dashboard</a></li>
-        <li><a href="status_pemesanan.php">Tiket Saya</a></li>
+        <li><a href="<?= $baseUrl ?>/member/dashboard.php">Dashboard</a></li>
+        <li><a href="<?= $baseUrl ?>/member/status_pemesanan.php">Tiket Saya</a></li>
         <li><a href="#">Tentang Kami</a></li>
-        <li><a href="user.php">Profil</a></li>
-        <li><a href="../auth/logout.php">Logout</a></li>
+        <li><a href="<?= $baseUrl ?>/member/akun/index.php">Profil</a></li>
+        <li><a href="<?= $baseUrl ?>/auth/logout.php">Logout</a></li>
     </ul>
 </div>
 
