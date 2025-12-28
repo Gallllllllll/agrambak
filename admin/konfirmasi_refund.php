@@ -12,66 +12,29 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'admin') {
    PROSES ACC / TOLAK
 ======================= */
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-
     $pembatalan_id = $_POST['pembatalan_id'];
     $aksi = $_POST['aksi']; // setuju / tolak
     $catatan = $_POST['catatan_admin'] ?? '';
 
     if ($aksi === 'setuju') {
-
         $pdo->beginTransaction();
-
         try {
-            // 1. Update pembatalan → Disetujui
-            $stmt = $pdo->prepare("
-                UPDATE pembatalan
-                SET status = 'Disetujui',
-                    catatan_admin = ?,
-                    waktu_respon = NOW()
-                WHERE pembatalan_id = ? AND status = 'Menunggu'
-            ");
+            $stmt = $pdo->prepare("UPDATE pembatalan SET status='Disetujui', catatan_admin=?, waktu_respon=NOW() WHERE pembatalan_id=? AND status='Menunggu'");
             $stmt->execute([$catatan, $pembatalan_id]);
 
-            // 2. Update reservasi → Dibatalkan
-            $stmt = $pdo->prepare("
-                UPDATE reservasi
-                SET status = 'Dibatalkan'
-                WHERE reservasi_id = (
-                    SELECT reservasi_id
-                    FROM pembatalan
-                    WHERE pembatalan_id = ?
-                )
-            ");
+            $stmt = $pdo->prepare("UPDATE reservasi SET status='Dibatalkan' WHERE reservasi_id=(SELECT reservasi_id FROM pembatalan WHERE pembatalan_id=?)");
             $stmt->execute([$pembatalan_id]);
 
-            // 3. Update pembayaran → refunded
-            $stmt = $pdo->prepare("
-                UPDATE pembayaran
-                SET status = 'refunded'
-                WHERE reservasi_id = (
-                    SELECT reservasi_id
-                    FROM pembatalan
-                    WHERE pembatalan_id = ?
-                )
-            ");
+            $stmt = $pdo->prepare("UPDATE pembayaran SET status='refunded' WHERE reservasi_id=(SELECT reservasi_id FROM pembatalan WHERE pembatalan_id=?)");
             $stmt->execute([$pembatalan_id]);
 
             $pdo->commit();
-
         } catch (Exception $e) {
             $pdo->rollBack();
             die("Gagal memproses refund");
         }
-
     } elseif ($aksi === 'tolak') {
-
-        $stmt = $pdo->prepare("
-            UPDATE pembatalan
-            SET status = 'Ditolak',
-                catatan_admin = ?,
-                waktu_respon = NOW()
-            WHERE pembatalan_id = ? AND status = 'Menunggu'
-        ");
+        $stmt = $pdo->prepare("UPDATE pembatalan SET status='Ditolak', catatan_admin=?, waktu_respon=NOW() WHERE pembatalan_id=? AND status='Menunggu'");
         $stmt->execute([$catatan, $pembatalan_id]);
     }
 
@@ -83,81 +46,101 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
    AMBIL DATA REFUND MENUNGGU
 ======================= */
 $stmt = $pdo->query("
-    SELECT 
-        pb.pembatalan_id,
-        r.kode_booking,
-        r.total_harga,
-        pb.alasan,
-        u.nama AS nama_user,
-        pb.waktu_ajukan
+    SELECT pb.pembatalan_id, r.kode_booking, r.total_harga, pb.alasan,
+           u.nama AS nama_user, pb.waktu_ajukan
     FROM pembatalan pb
     JOIN reservasi r ON pb.reservasi_id = r.reservasi_id
     JOIN users u ON pb.user_id = u.user_id
-    WHERE pb.status = 'Menunggu'
+    WHERE pb.status='Menunggu'
     ORDER BY pb.waktu_ajukan DESC
 ");
 $refunds = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
-
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
-    <title>Konfirmasi Refund</title>
-    <style>
-        table { border-collapse: collapse; width: 100%; }
-        th, td { border: 1px solid #333; padding: 8px; text-align: center; }
-        th { background: #f0f0f0; }
-        button { padding: 5px 10px; margin: 2px; cursor: pointer; border: none; }
-        .btn-approve { background-color: #4CAF50; color: white; }
-        .btn-reject { background-color: #f44336; color: white; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Konfirmasi Refund</title>
+
+<link rel="stylesheet" href="../aset/css/dashboard_admin.css">
+<link rel="stylesheet" href="../aset/css/users_admin.css">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css">
 </head>
 <body>
 
-<h2>Konfirmasi Refund</h2>
-<a href="dashboard.php">← Kembali ke Dashboard</a>
-<br><br>
+<?php include __DIR__ . '/sidebar.php'; ?>
 
-<?php if ($refunds): ?>
-<table>
-<tr>
-    <th>Kode Booking</th>
-    <th>Nama User</th>
-    <th>Total Harga</th>
-    <th>Alasan</th>
-    <th>Waktu Ajukan</th>
-    <th>Aksi</th>
-</tr>
+<div class="main-content">
 
-<?php foreach ($refunds as $r): ?>
-<tr>
-    <td><?= htmlspecialchars($r['kode_booking']) ?></td>
-    <td><?= htmlspecialchars($r['nama_user']) ?></td>
-    <td>Rp<?= number_format($r['total_harga']) ?></td>
-    <td><?= htmlspecialchars($r['alasan']) ?></td>
-    <td><?= $r['waktu_ajukan'] ?></td>
-    <td>
-        <form method="POST" style="display:inline;">
-            <input type="hidden" name="pembatalan_id" value="<?= $r['pembatalan_id'] ?>">
-            <input type="text" name="catatan_admin" placeholder="Catatan Admin">
-            <br>
-            <button type="submit" name="aksi" value="setuju" class="btn-approve">
-                Setuju
-            </button>
-            <button type="submit" name="aksi" value="tolak" class="btn-reject">
-                Tolak
-            </button>
+    <div class="dashboard-header mb-3">
+        <h1>Konfirmasi Refund</h1>
+        <p>Kelola permintaan refund pengguna</p>
+    </div>
 
-        </form>
-    </td>
-</tr>
-<?php endforeach; ?>
+    <div class="table-responsive">
+        <?php if ($refunds): ?>
+        <table id="refundTable" class="table table-striped align-middle">
+            <thead>
+                <tr>
+                    <th>Kode Booking</th>
+                    <th>Nama User</th>
+                    <th>Total Harga</th>
+                    <th>Alasan</th>
+                    <th>Waktu Ajukan</th>
+                    <th style="width:180px">Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($refunds as $r): ?>
+                <tr>
+                    <td><?= htmlspecialchars($r['kode_booking']) ?></td>
+                    <td><?= htmlspecialchars($r['nama_user']) ?></td>
+                    <td>Rp <?= number_format($r['total_harga'], 0, ',', '.') ?></td>
+                    <td><?= htmlspecialchars($r['alasan']) ?></td>
+                    <td><?= $r['waktu_ajukan'] ?></td>
+                    <td>
+                        <form method="POST" class="d-flex flex-column flex-sm-row gap-1">
+                            <input type="hidden" name="pembatalan_id" value="<?= $r['pembatalan_id'] ?>">
+                            <input type="text" name="catatan_admin" class="form-control form-control-sm mb-1 mb-sm-0" placeholder="Catatan Admin">
+                            <button type="submit" name="aksi" value="setuju" class="btn btn-sm btn-outline-success">Setuju</button>
+                            <button type="submit" name="aksi" value="tolak" class="btn btn-sm btn-outline-danger">Tolak</button>
+                        </form>
+                    </td>
+                </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+        <?php else: ?>
+            <p><i>Tidak ada refund pending.</i></p>
+        <?php endif; ?>
+    </div>
 
-</table>
-<?php else: ?>
-<p><i>Tidak ada refund pending.</i></p>
-<?php endif; ?>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+
+<script>
+$(document).ready(function () {
+    $('#refundTable').DataTable({
+        pageLength: 10,
+        lengthChange: false,
+        ordering: true,
+        language: {
+            search: "Cari:",
+            paginate: { previous: "‹", next: "›" },
+            info: "Menampilkan _START_ - _END_ dari _TOTAL_ refund",
+            infoEmpty: "Data kosong",
+            zeroRecords: "Data tidak ditemukan"
+        }
+    });
+});
+</script>
 
 </body>
 </html>

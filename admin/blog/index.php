@@ -136,12 +136,26 @@ $blogs = $pdo->query("
                 width: 70px;
             }
 
-            .action-btn {
-                display: inline-block;
-                margin-bottom: 5px;
-                font-size: 12px;
-                padding: 5px 8px;
+            td .d-flex {
+                justify-content: flex-start;
+                align-items: center;
             }
+
+            .action-btn {
+                display: inline-flex;
+                align-items: center;
+                gap: 5px; /* jarak ikon dan teks */
+                text-decoration: none;
+                padding: 5px 10px;
+                border-radius: 5px;
+                color: white;
+                font-size: 14px;
+            }
+
+            .action-btn:hover {
+                opacity: 0.9;
+            }
+
         }
 
     </style>
@@ -179,9 +193,17 @@ $blogs = $pdo->query("
                     <td><?= $b['created_at'] ?></td>
                     <td><?= $b['updated_at'] ?></td>
                     <td>
-                        <a href="edit.php?blog_id=<?= $b['blog_id'] ?>" class="action-btn edit-btn"><i class="fa-solid fa-pen"></i> Edit</a>
-                        <a href="hapus.php?blog_id=<?= $b['blog_id'] ?>" class="action-btn delete-btn" onclick="return confirm('Yakin hapus?')"><i class="fa-solid fa-trash"></i> Hapus</a>
+                        <div class="d-flex gap-2">
+                            <a href="edit.php?blog_id=<?= $b['blog_id'] ?>" class="action-btn edit-btn">
+                                <i class="fa-solid fa-pen"></i> Edit
+                            </a>
+                            <a href="hapus.php?blog_id=<?= $b['blog_id'] ?>" class="action-btn delete-btn" 
+                            onclick="return confirm('Yakin hapus?')">
+                                <i class="fa-solid fa-trash"></i> Hapus
+                            </a>
+                        </div>
                     </td>
+
                 </tr>
             <?php endforeach; ?>
         </tbody>
