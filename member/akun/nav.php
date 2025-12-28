@@ -20,7 +20,7 @@ $userName = 'U';
 
 // Jika user login, ambil data dari database
 if ($userLogin && isset($userLogin['user_id'])) {
-    require_once __DIR__ . '/../config/database.php';
+    require_once __DIR__ . '/../../config/database.php';
 
     $stmt = $pdo->prepare("SELECT foto, nama FROM users WHERE user_id = ?");
     $stmt->execute([$userLogin['user_id']]);
@@ -33,27 +33,27 @@ if ($userLogin && isset($userLogin['user_id'])) {
 }
 
 // Jika foto tidak ada, pakai default avatar
-$profileImgPath = $profileImg ? $baseUrl.'/../uploads/'.htmlspecialchars($profileImg) 
-                              : $baseUrl.'/../aset/icon/profile.png';
+$profileImgPath = $profileImg ? $baseUrl.'/../../uploads/'.htmlspecialchars($profileImg) 
+                              : $baseUrl.'/../../aset/icon/profile.png';
 ?>
-<html>
+
 <nav class="navbar">
     <div class="logo">
         <!-- Gunakan path absolut -->
-        <img src="<?= $baseUrl ?>/../aset/img/logo-tranzio.png" alt="Tranzio">
+        <img src="<?= $baseUrl ?>/../../aset/img/logo-tranzio.png" alt="Tranzio">
     </div>
 
     <!-- MENU DESKTOP -->
     <ul class="menu desktop-menu">
-        <li><a href="<?= $baseUrl ?>/dashboard.php">Dashboard</a></li>
-        <li><a href="<?= $baseUrl ?>/status_pemesanan.php">Tiket Saya</a></li>
+        <li><a href="<?= $baseUrl ?>/../dashboard.php">Dashboard</a></li>
+        <li><a href="<?= $baseUrl ?>/../status_pemesanan.php">Tiket Saya</a></li>
         <li><a href="#">Tentang Kami</a></li>
-        <li><a href="<?= $baseUrl ?>/../auth/logout.php">Logout</a></li>
+        <li><a href="<?= $baseUrl ?>/../../auth/logout.php">Logout</a></li>
     </ul>
 
     <!-- PROFILE DESKTOP -->
     <div class="profile desktop-profile">
-        <a href="<?= $baseUrl ?>/akun/index.php">
+        <a href="<?= $baseUrl ?>/index.php">
             <img src="<?= $profileImgPath ?>" alt="Foto Profil User">
         </a>
     </div>
@@ -73,11 +73,11 @@ $profileImgPath = $profileImg ? $baseUrl.'/../uploads/'.htmlspecialchars($profil
     </div>
 
     <ul>
-        <li><a href="<?= $baseUrl ?>/dashboard.php">Dashboard</a></li>
-        <li><a href="<?= $baseUrl ?>/status_pemesanan.php">Tiket Saya</a></li>
+        <li><a href="<?= $baseUrl ?>/../dashboard.php">Dashboard</a></li>
+        <li><a href="<?= $baseUrl ?>/../status_pemesanan.php">Tiket Saya</a></li>
         <li><a href="#">Tentang Kami</a></li>
-        <li><a href="<?= $baseUrl ?>/akun/index.php">Profil</a></li>
-        <li><a href="<?= $baseUrl ?>/../auth/logout.php">Logout</a></li>
+        <li><a href="<?= $baseUrl ?>/index.php">Profil</a></li>
+        <li><a href="<?= $baseUrl ?>/../../auth/logout.php">Logout</a></li>
     </ul>
 </div>
 
@@ -99,4 +99,3 @@ overlay.addEventListener("click", () => {
     overlay.classList.remove("active");
 });
 </script>
-</html>

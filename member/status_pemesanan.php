@@ -71,6 +71,8 @@ $reservasi = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Tiket Saya</title>
 <link rel="stylesheet" href="../aset/css/nav.css">
+<link rel="stylesheet" href="../aset/css/footer.css">
+<link rel="icon" href="../aset/img/logo-tranzio2.png" type="image/x-icon">
 
 <style>
 * { box-sizing: border-box; }
@@ -280,6 +282,6 @@ if (!empty($r['waktu_checkin'])) {
 <?php endif; ?>
 
 </div>
-
+<?php include __DIR__ . "/footer.php"; ?>
 </body>
 </html>

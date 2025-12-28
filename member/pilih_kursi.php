@@ -76,6 +76,7 @@ $seatmap = $stmt3->fetchAll(PDO::FETCH_COLUMN);
 <head>
     <title>Pilih Kursi</title>
     <link rel="stylesheet" href="../aset/css/nav.css">
+    <link rel="stylesheet" href="../aset/css/footer.css">
     <style>
         body {
             background: #2f405a;
@@ -218,7 +219,7 @@ $seatmap = $stmt3->fetchAll(PDO::FETCH_COLUMN);
 
     <button type="submit">Pesan</button>
 </form>
-
+<?php include __DIR__ . "/footer.php"; ?>
 <script>
 document.querySelectorAll('.seat.kosong').forEach(seat => {
     seat.addEventListener('click', () => {

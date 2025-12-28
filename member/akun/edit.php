@@ -78,6 +78,9 @@ if (!empty($user['foto']) && file_exists($fotoPath)) {
 <head>
 <meta charset="UTF-8">
 <title>Edit Profil</title>
+<link rel="stylesheet" href="../../aset/css/nav.css">
+<link rel="stylesheet" href="../../aset/css/footer.css">
+<link rel="icon" href="../../aset/img/logo-tranzio2.png" type="image/x-icon">
 <style>
     /* Reset sederhana */
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -96,7 +99,7 @@ if (!empty($user['foto']) && file_exists($fotoPath)) {
     /* Sidebar */
     .sidebar {
         width: 250px;
-        background-color: #3498db;
+        background-color: #253a5fff;
         color: #fff;
         padding: 20px;
         display: flex;
@@ -188,6 +191,27 @@ if (!empty($user['foto']) && file_exists($fotoPath)) {
         background-color: #1e8449;
     }
 
+    .button-group {
+    display: flex;
+    gap: 10px;
+    }
+
+    .btn-back {
+        background-color: #7f8c8d;
+        color: #fff;
+        padding: 10px 20px;
+        text-decoration: none;
+        border-radius: 5px;
+        font-size: 14px;
+        display: inline-flex;
+        align-items: center;
+        transition: background-color 0.3s ease;
+    }
+
+    .btn-back:hover {
+        background-color: #616a6b;
+    }
+
     @media (max-width: 768px) {
         .container {
             flex-direction: column;
@@ -217,6 +241,7 @@ if (!empty($user['foto']) && file_exists($fotoPath)) {
 </style>
 </head>
 <body>
+<?php include "nav.php"; ?>
 <div class="container">
     <div class="sidebar">
         <img src="<?= htmlspecialchars($fotoToShow) ?>" alt="Foto Profil">
@@ -251,9 +276,11 @@ if (!empty($user['foto']) && file_exists($fotoPath)) {
             </div>
             <div>
                 <button type="submit">Simpan</button>
+                <a href="index.php" class="btn-back">Back</a>
             </div>
         </form>
     </div>
 </div>
+<?php include "footer.php"; ?>
 </body>
 </html>

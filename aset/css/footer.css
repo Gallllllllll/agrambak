@@ -1,0 +1,102 @@
+/* ===============================
+   FOOTER
+================================ */
+.footer {
+    background: #dfe7f3;
+    
+}
+
+.footer-top {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 30px;
+    padding: 25px 70px;
+}
+
+.footer-brand img {
+    height: 80px;
+    width: auto;
+}
+
+.footer-brand p {
+    font-weight: bold;
+    margin: 10px 0 5px;
+}
+
+.footer-menu {
+    margin-top: 25px;
+}
+
+.footer-menu a {
+    display: block;
+    text-decoration:double;
+    color: #344c6d;
+    margin-bottom: 6px;
+}
+
+/* ===============================
+   FOOTER ICON & SOCIAL
+================================ */
+
+.footer-contact i,
+.footer-social i {
+    margin-right: 8px;
+    color: #344c6d;
+    width: 18px;
+    text-align: center;
+}
+
+.footer-contact p {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* media sosial */
+.footer-social, .footer-contact {
+    padding: 10px;
+}
+
+.footer-social h4 {
+    margin-bottom: 10px;
+}
+
+.footer-social .social-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    color: #344c6d;
+    text-decoration: none;
+    margin-bottom: 8px;
+    transition: 0.2s;
+}
+
+.footer-social .social-item:hover {
+    color: #1d3557;
+}
+
+/* ukuran icon sosmed */
+.footer-social i {
+    font-size: 18px;
+}
+
+
+.footer-bottom {
+    margin-top: 30px;
+    text-align: center;
+    padding: 12px;
+    background: #344c6d;
+    color: #ffffff;
+    margin-bottom: 20px;
+}
+
+/* ===============================
+   RESPONSIVE (OPSIONAL)
+================================ */
+@media (max-width: 768px) {
+
+    .footer-top {
+        flex-direction: column;
+    }
+}

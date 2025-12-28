@@ -30,6 +30,14 @@ if (!$user) {
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Profil Saya</title>
+
+<link rel="stylesheet" href="../../aset/css/dashboard.css">
+<link rel="icon" href="../../aset/img/logo-tranzio2.png" type="image/x-icon">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css">
+<script src="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+
 <style>
 * { box-sizing: border-box; }
 
@@ -132,7 +140,7 @@ body {
 </head>
 <body>
 
-<?php include "../../partials/navbar.php"; ?>
+<?php include "nav.php"; ?>
 
 <div class="container">
 
@@ -165,6 +173,6 @@ body {
     </div>
 
 </div>
-
+<?php include "footer.php"; ?>
 </body>
 </html>

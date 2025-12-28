@@ -16,6 +16,7 @@ $terminals = $pdo->query("
     <meta charset="UTF-8">
     <title>Dashboard Member</title>
     <link rel="stylesheet" href="../aset/css/dashboard.css">
+    <link rel="icon" href="../aset/img/logo-tranzio2.png" type="image/x-icon">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css">
     <script src="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
