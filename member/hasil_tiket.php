@@ -4,7 +4,6 @@ require "../config/database.php";
 $asal    = $_GET['asal'] ?? '';
 $tujuan  = $_GET['tujuan'] ?? '';
 $tanggal = $_GET['tanggal'] ?? '';
-
 $sql = "
 SELECT 
     j.jadwal_id,
@@ -28,6 +27,21 @@ AND j.tanggal = ?
 $stmt = $pdo->prepare($sql);
 $stmt->execute([$asal, $tujuan, $tanggal]);
 $data = $stmt->fetchAll();
+
+// DATA BUS
+$qBus = $pdo->prepare("
+    SELECT 
+        ba.nama_bus,
+        ba.deskripsi AS deskripsi_bus,
+        at.tipe_id,
+        at.nama_tipe,
+        at.deskripsi AS deskripsi_tipe
+    FROM jadwal j
+    JOIN bus_armada ba ON j.armada_id = ba.armada_id
+    JOIN armada_tipe at ON ba.tipe_id = at.tipe_id
+    WHERE j.jadwal_id = ?
+");
+
 ?>
 
 <!DOCTYPE html>
@@ -36,9 +50,22 @@ $data = $stmt->fetchAll();
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Hasil Pencarian Tiket</title>
-<link rel="stylesheet" href="../aset/css/dashboard.css">
+<link rel="stylesheet" href="../aset/css/nav.css">
+<link rel="stylesheet" href="../aset/css/footer.css">
 <style>
+html, body {
+    height: 100%;
+    margin: 0;
+}
+
+.main-content {
+    flex: 1;
+}
+
+
 body { 
+    display: flex;
+    flex-direction: column;
     background: #2f405a; 
     color: #333; 
 }
@@ -188,6 +215,8 @@ body {
 
 <?php include __DIR__ . "/nav.php"; ?>
 
+<div class="main-content">
+
 <div class="container">
 <h2 style="color:white;">Hasil Pencarian Tiket</h2>
 
@@ -196,45 +225,104 @@ body {
 <?php endif; ?>
 
 <?php foreach($data as $row): ?>
-    <div class="card">
-        <div class="card-body">
-            <p><b>Bus:</b> <?= htmlspecialchars($row['nama_bus']) ?> (<?= htmlspecialchars($row['nama_tipe']) ?>)</p>
-            <p><b>Jam:</b> <?= $row['jam_berangkat'] ?> - <?= $row['jam_tiba'] ?></p>
-            <p class="harga">Rp<?= number_format($row['harga'],0,',','.') ?></p>
-        </div>
 
-        <div>
-            <button class="btn show-modal" 
-                data-deskripsi-bus="<?= htmlspecialchars($row['deskripsi_bus']) ?>" 
-                data-deskripsi-tipe="<?= htmlspecialchars($row['deskripsi_tipe']) ?>" 
-                data-href="pilih_kursi.php?jadwal_id=<?= $row['jadwal_id'] ?>">
-                Pesan
-            </button>
+<?php
+// BUS + TIPE
+$stmtBus = $pdo->prepare("
+    SELECT 
+        ba.nama_bus,
+        ba.deskripsi AS deskripsi_bus,
+        at.tipe_id,
+        at.nama_tipe,
+        at.deskripsi AS deskripsi_tipe
+    FROM jadwal j
+    JOIN bus_armada ba ON j.armada_id = ba.armada_id
+    JOIN armada_tipe at ON ba.tipe_id = at.tipe_id
+    WHERE j.jadwal_id = ?
+");
+$stmtBus->execute([$row['jadwal_id']]);
+$bus = $stmtBus->fetch(PDO::FETCH_ASSOC);
+
+// FOTO FASILITAS
+$stmtFoto = $pdo->prepare("
+    SELECT foto 
+    FROM armada_tipe_foto 
+    WHERE tipe_id = ?
+");
+$stmtFoto->execute([$bus['tipe_id']]);
+$fotos = $stmtFoto->fetchAll();
+
+// FASILITAS + ICON
+$stmtFasilitas = $pdo->prepare("
+    SELECT f.nama_fasilitas, f.icon
+    FROM armada_tipe_fasilitas atf
+    JOIN fasilitas f ON atf.fasilitas_id = f.fasilitas_id
+    WHERE atf.tipe_id = ?
+");
+$stmtFasilitas->execute([$bus['tipe_id']]);
+$fasilitas = $stmtFasilitas->fetchAll();
+?>
+
+<!-- CARD -->
+<div class="card">
+    <div class="card-body">
+        <p><b>Bus:</b> <?= htmlspecialchars($bus['nama_bus']) ?> (<?= $bus['nama_tipe'] ?>)</p>
+        <p><b>Jam:</b> <?= $row['jam_berangkat'] ?> - <?= $row['jam_tiba'] ?></p>
+        <p class="harga">Rp<?= number_format($row['harga'],0,',','.') ?></p>
+    </div>
+
+    <button class="btn"
+        onclick="document.getElementById('modal<?= $row['jadwal_id']; ?>').style.display='block'">
+        Pesan
+    </button>
+</div>
+
+<!-- MODAL -->
+<div class="modal" id="modal<?= $row['jadwal_id']; ?>">
+  <div class="modal-content">
+
+    <div class="modal-header">
+      <h3><?= $bus['nama_bus']; ?> (<?= $bus['nama_tipe']; ?>)</h3>
+      <span class="modal-close"
+            onclick="this.closest('.modal').style.display='none'">&times;</span>
+    </div>
+
+    <div class="modal-body">
+
+      <!-- FOTO FASILITAS -->
+      <?php if ($fotos): ?>
+        <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:10px;">
+          <?php foreach($fotos as $f): ?>
+            <img src="../uploads/fasilitas/<?= $f['foto']; ?>"
+                 style="width:100%; border-radius:10px;">
+          <?php endforeach; ?>
+        </div>
+      <?php endif; ?>
+
+      <hr>
+
+      <!-- DESKRIPSI TIPE -->
+      <p><?= $bus['deskripsi_tipe']; ?></p>
+
+      <!-- FASILITAS -->
+      <div>
+        <?php foreach($fasilitas as $f): ?>
+          <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
+            <i class="fa <?= $f['icon']; ?>" style="color:#2d9cdb;"></i>
+            <span><?= $f['nama_fasilitas']; ?></span>
+          </div>
+        <?php endforeach; ?>
+      </div>
+        <div class="modal-footer">
+            <a href="pilih_kursi.php?jadwal_id=<?= $row['jadwal_id']; ?>" class="btn btn-lanjut" id="btnLanjut">Lanjut Pesan</a>
         </div>
     </div>
+  </div>
+</div>
+
 <?php endforeach; ?>
 </div>
 
-<!-- Modal -->
-<!-- Modal -->
-<div class="modal" id="modalPopup">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3>Detail Armada</h3>
-            <span class="modal-close">&times;</span>
-        </div>
-        <div class="modal-body">
-            <p><strong>Kelas:</strong> <span id="deskripsiTipe"></span></p>
-            <p><strong>Deskripsi Bus:</strong> <span id="deskripsiBus"></span></p>
-        </div>
-        <div class="modal-footer">
-            <a href="#" class="btn btn-lanjut" id="btnLanjut">Lanjut Pesan</a>
-        </div>
-    </div>
-</div>
-
-
-<?php include __DIR__ . "/footer.php"; ?>
 
 <script>
 const modal = document.getElementById('modalPopup');
@@ -255,6 +343,6 @@ document.querySelectorAll('.show-modal').forEach(btn => {
 closeBtn.addEventListener('click', () => modal.style.display = 'none');
 window.addEventListener('click', e => { if(e.target==modal) modal.style.display='none'; });
 </script>
-
+<?php include "footer.php"; ?>
 </body>
 </html>
