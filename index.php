@@ -67,10 +67,10 @@ foreach ($tipeArmada as $t) {
     <style>
         .fasilitas {
             background: #f8f9fb;
-            padding: 60px 20px;
+            padding: 60px 50px;
             margin: 70px 0;
             box-shadow: 0 8px 20px rgba(0,0,0,0.25);
-            border-top: 5px gradien #253562ff;
+            border-top: 7px solid #253562ff;
         }
 
         .fasilitas .title {

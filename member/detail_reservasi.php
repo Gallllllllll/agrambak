@@ -254,10 +254,6 @@ table tr:nth-child(even) {
                 <td><?= strtoupper($data['pembayaran_status'] ?? 'MENUNGGU') ?></td>
             </tr>
             <tr>
-                <th>Metode Pembayaran</th>
-                <td><?= $data['metode'] ?? '-' ?></td>
-            </tr>
-            <tr>
                 <th>Bukti Transfer</th>
                 <td>
                     <?php if ($data['bukti_transfer']): ?>

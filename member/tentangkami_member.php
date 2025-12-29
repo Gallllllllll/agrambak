@@ -295,7 +295,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     
 
-    <?php include "footerguest.php"; ?>
+    <?php include "footer.php"; ?>
 
 <script src="aset/js/dashboard.js"></script>
 </body>
