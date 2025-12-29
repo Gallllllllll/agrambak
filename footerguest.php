@@ -14,8 +14,9 @@
             </small>
         </div>
 
-        <div class="footer-menu">
-        <div>
+        <!-- PETA LOKASI -->
+        <div class="footer-social">
+            <div>
                 <h4>Peta Lokasi</h4>
                 <iframe
                         src="https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d253129.00894142335!2d110.856381!3d-7.559627!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e7a14234667a3fd%3A0xbda63b32997616ad!2sSebelas%20Maret%20University!5e0!3m2!1sen!2sus!4v1729556093028!5m2!1sen!2sus"

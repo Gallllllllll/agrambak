@@ -15,7 +15,7 @@
         </div>
 
         <!-- PETA LOKASI -->
-        <div class="footer-menu">
+        <div class="footer-social">
             <div>
                 <h4>Peta Lokasi</h4>
                 <iframe
