@@ -2,17 +2,26 @@
 require "../config/database.php";
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
+    // pastikan field ada & tidak kosong
+    if (!isset($_POST['pesan']) || trim($_POST['pesan']) === '') {
+        header("Location: tentangkami_member.php?error=1");
+        exit;
+    }
+
     $pesan = trim($_POST['pesan']);
 
     $stmt = $pdo->prepare("
-        INSERT INTO kritik_saran (pesan, created_at)
-        VALUES (?, NOW())
+        INSERT INTO kritik_saran (pesan)
+        VALUES (?)
     ");
     $stmt->execute([$pesan]);
 
-    header("Location: tentangkami.php?success=1");
+    header("Location: tentangkami_member.php?success=1");
+    exit;
 }
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -275,7 +284,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <h3>Kritik & Saran</h3>
             <p>Sampaikan masukan Anda untuk membantu kami meningkatkan kualitas layanan.</p>
 
-            <form action="tentangkami.php" method="post">
+            <form action="tentangkami_member.php" method="post">
                 <textarea 
                     name="pesan" 
                     placeholder="Tulis kritik atau saran Anda di sini..."

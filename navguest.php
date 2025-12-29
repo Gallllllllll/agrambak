@@ -36,7 +36,7 @@ $baseUrl = (
 <div class="side-menu" id="sideMenu">
     <ul>
         <li><a href="<?= $baseUrl ?>/index.php">Dashboard</a></li>
-        <li><a href=#>Tentang Kami</a></li>
+        <li><a href="<?= $baseUrl ?>/tentangkami.php">Tentang Kami</a></li>
         <li><a href="<?= $baseUrl ?>/auth/login.php">Login</a></li>
         <li><a href="<?= $baseUrl ?>/auth/register.php">Register</a></li>
     </ul>
