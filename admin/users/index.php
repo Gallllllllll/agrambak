@@ -34,6 +34,7 @@ $users = $stmt->fetchAll();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="../../aset/img/logo-tranzio2.png" type="image/x-icon">
 
     <!-- CSS GLOBAL -->
     <link rel="stylesheet" href="../../aset/css/dashboard_admin.css">

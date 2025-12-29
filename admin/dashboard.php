@@ -52,6 +52,7 @@ for ($i = 1; $i <= 12; $i++) {
 <head>
     <title>Dashboard Admin</title>
     <link rel="stylesheet" href="../aset/css/dashboard_admin.css">
+    <link rel="icon" href="../aset/img/logo-tranzio2.png" type="image/x-icon">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.5/font/bootstrap-icons.min.css" rel="stylesheet">

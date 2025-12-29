@@ -47,6 +47,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <title>Tambah Rute</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="../../aset/img/logo-tranzio2.png" type="image/x-icon">
 
     <!-- CSS -->
     <link rel="stylesheet" href="/agrambak/aset/css/dashboard_admin.css">

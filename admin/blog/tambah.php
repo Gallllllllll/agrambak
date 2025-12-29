@@ -24,100 +24,56 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 ?>
 
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Tambah Blog - Admin</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="../../aset/img/logo-tranzio2.png" type="image/x-icon">
     <link rel="stylesheet" href="../../aset/css/dashboard_admin.css">
+    <link rel="stylesheet" href="../../aset/css/users_admin.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-        }
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" rel="stylesheet">
 
-        .main-content {
-            padding: 20px;
-            max-width: 700px;
-            margin: auto;
-        }
-
-        h2 {
-            margin-bottom: 20px;
-            color: #4e73df;
-        }
-
-        .form-card {
-            background-color: white;
-            padding: 25px;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
-
-        label {
-            font-weight: 600;
-        }
-
-        input[type="text"],
-        textarea,
-        input[type="file"] {
-            width: 100%;
-            padding: 10px;
-            margin-top: 6px;
-            margin-bottom: 15px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            box-sizing: border-box;
-        }
-
-        textarea {
-            resize: vertical;
-        }
-
-        button {
-            background-color: #4e73df;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        button:hover {
-            background-color: #224abe;
-        }
-
-        a.back-btn {
-            display: inline-block;
-            margin-bottom: 15px;
-            text-decoration: none;
-            color: #4e73df;
-        }
-
-        a.back-btn:hover {
-            text-decoration: underline;
-        }
-    </style>
+    <title>Tambah Blog</title>
 </head>
 <body>
+    <?php include __DIR__ . '/../sidebar.php'; ?>
+
 <div class="main-content">
-    <h2>Tambah Blog</h2>
-    <a href="index.php" class="back-btn"><i class="fa-solid fa-arrow-left"></i> Kembali ke Daftar Blog</a>
-
-    <div class="form-card">
-        <form method="post" enctype="multipart/form-data">
-            <label>Judul:</label>
-            <input type="text" name="judul" placeholder="Masukkan judul blog" required>
-
-            <label>Konten:</label>
-            <textarea name="konten" rows="10" placeholder="Tulis konten blog di sini..." required></textarea>
-
-            <label>Gambar:</label>
-            <input type="file" name="gambar" accept="image/*">
-
-            <button type="submit"><i class="fa-solid fa-floppy-disk"></i> Simpan Blog</button>
-        </form>
+    <div class="dashboard-header mb-4">
+        <div>
+            <h1>Tambah Blog</h1>
+            <p>Tambahkan artikel blog baru</p>
+        </div>
     </div>
-</div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <form method="post" enctype="multipart/form-data">
+                <div class="mb-3">
+                    <label for="judul" class="form-label"><strong>Judul</strong></label>
+                    <input type="text" class="form-control" id="judul" name="judul" required>
+                </div>
+                <div class="mb-3">
+                    <label for="konten" class="form-label"><strong>Konten</strong></label>
+                    <textarea class="form-control" id="konten" name="konten" rows="10" required></textarea>
+                </div>
+                <div class="mb-3">
+                    <label for="gambar" class="form-label"><strong>Gambar</strong></label>
+                    <input type="file" class="form-control" id="gambar" name="gambar" accept="image/*">
+                </div>
+                <!-- ACTION -->
+                <div class="col-12 d-flex justify-content-between mt-4">
+                    <a href="index.php" class="btn btn-light">
+                        <i class="fa-solid fa-arrow-left"></i> Kembali
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fa fa-save"></i> Posting
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 </body>
 </html>

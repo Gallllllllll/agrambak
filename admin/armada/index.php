@@ -18,6 +18,7 @@ $tipeBus = $pdo->query("SELECT * FROM armada_tipe")->fetchAll();
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="../../aset/img/logo-tranzio2.png" type="image/x-icon">
 
 <link rel="stylesheet" href="../../aset/css/dashboard_admin.css">
 <link rel="stylesheet" href="../../aset/css/users_admin.css">
@@ -38,22 +39,26 @@ $tipeBus = $pdo->query("SELECT * FROM armada_tipe")->fetchAll();
         <h1>Manajemen Armada</h1>
         <p>Kelola data armada bus</p>    
         </div>
-        
     </div>
 
-    <div class="mb-3 d-flex justify-content-between align-items-center">
-        <a href="tambah.php" class="btn btn-primary"><i class="fa fa-plus"></i> Tambah Armada</a>
+    <div class="d-flex align-items-center mb-3 flex-wrap">
+        <!-- Tombol Tambah Armada -->
+        <a href="tambah.php" class="btn btn-primary me-2 mb-2">
+            <i class="fa fa-plus"></i> Tambah Armada
+        </a>
 
+        <!-- Filter Tipe Bus -->
         <label style="margin-left:auto">
-            Tipe Bus:
-            <select id="filterTipe" class="form-select form-select-sm d-inline-block" style="width:160px">
-                <option value="">Semua</option>
-                <?php foreach ($tipeBus as $t): ?>
-                    <option value="<?= htmlspecialchars($t['nama_tipe']) ?>"><?= htmlspecialchars($t['nama_tipe']) ?></option>
-                <?php endforeach; ?>
-            </select>
+                Tipe Bus:
+                <select id="filterTipe" class="form-select form-select-sm d-inline-block" style="width:160px">
+                    <option value="">Semua</option>
+                    <?php foreach ($tipeBus as $t): ?>
+                        <option value="<?= htmlspecialchars($t['nama_tipe']) ?>"><?= htmlspecialchars($t['nama_tipe']) ?></option>
+                    <?php endforeach; ?>
+                </select>
         </label>
     </div>
+
 
     <div class="table-responsive">
         <table id="armadaTable" class="table table-striped align-middle">
