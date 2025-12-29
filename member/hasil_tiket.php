@@ -52,6 +52,7 @@ $qBus = $pdo->prepare("
 <title>Hasil Pencarian Tiket</title>
 <link rel="stylesheet" href="../aset/css/nav.css">
 <link rel="stylesheet" href="../aset/css/footer.css">
+<link rel="icon" href="../aset/img/logo-tranzio2.png" type="image/x-icon">
 <style>
 html, body {
     height: 100%;

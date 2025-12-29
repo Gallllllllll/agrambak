@@ -70,6 +70,7 @@ $seatmap = $stmt3->fetchAll(PDO::FETCH_COLUMN);
 
 <link rel="stylesheet" href="../aset/css/nav.css">
 <link rel="stylesheet" href="../aset/css/footer.css">
+<link rel="icon" href="../aset/img/logo-tranzio2.png" type="image/x-icon">
 
 <style>
 body {

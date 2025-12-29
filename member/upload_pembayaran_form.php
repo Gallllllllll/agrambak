@@ -140,6 +140,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <meta charset="UTF-8">
 <title>Upload Pembayaran - <?= $reservasi['kode_booking'] ?></title>
 <link rel="stylesheet" href="../aset/css/nav.css">
+<link rel="icon" href="../aset/img/logo-tranzio2.png" type="image/x-icon">
 <style>
 body {
     background: #2f405a;
