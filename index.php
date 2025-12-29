@@ -67,9 +67,9 @@ foreach ($tipeArmada as $t) {
         .fasilitas {
             background: #f8f9fb;
             padding: 60px 20px;
-            margin: 70px 30px;
-            border-radius: 40px;
+            margin: 70px 0;
             box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+            border-top: 5px gradien #253562ff;
         }
 
         .fasilitas .title {
@@ -140,6 +140,76 @@ foreach ($tipeArmada as $t) {
             color: #222e5aff;
             font-size: 18px;
         }
+        /* ================= CARA RESERVASI ================= */
+        .cara-reservasi {
+            padding: 70px 30px;
+            margin: 0 30px 70px;
+            background: #ffffff;
+            border-radius: 40px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+        }
+
+        .cara-reservasi .title {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .reservasi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 25px;
+            max-width: 1000px;
+            margin: auto;
+        }
+
+        .reservasi-card {
+            background: #f8f9fb;
+            border-radius: 25px;
+            padding: 30px 20px;
+            text-align: center;
+            position: relative;
+            transition: all 0.3s ease;
+            cursor: default;
+        }
+
+        .reservasi-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+        }
+
+        .reservasi-card i {
+            font-size: 40px;
+            color: #222e5aff;
+            margin-bottom: 15px;
+        }
+
+        .reservasi-card h3 {
+            margin-bottom: 10px;
+            color: #222;
+        }
+
+        .reservasi-card p {
+            color: #555;
+            font-size: 14px;
+        }
+
+        /* Nomor langkah */
+        .step-number {
+            position: absolute;
+            top: -15px;
+            left: -15px;
+            background: #7eade3ff;
+            color: #fff;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
     </style>
 </head>
 <body>
@@ -212,6 +282,45 @@ foreach ($tipeArmada as $t) {
         </div>
         <?php endforeach; ?>
 
+    </div>
+</section>
+
+<!-- ================= CARA RESERVASI ================= -->
+<section class="cara-reservasi">
+    <div class="container">
+        <h1 class="title">Cara Reservasi</h1>
+
+        <div class="reservasi-grid">
+
+            <div class="reservasi-card">
+                <div class="step-number">1</div>
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <h3>Cari Jadwal</h3>
+                <p>Pilih rute, tanggal keberangkatan, dan armada yang tersedia.</p>
+            </div>
+
+            <div class="reservasi-card">
+                <div class="step-number">2</div>
+                <i class="fa-solid fa-chair"></i>
+                <h3>Pilih Kursi</h3>
+                <p>Tentukan kursi sesuai keinginan dan jumlah penumpang.</p>
+            </div>
+
+            <div class="reservasi-card">
+                <div class="step-number">3</div>
+                <i class="fa-solid fa-credit-card"></i>
+                <h3>Lakukan Pembayaran</h3>
+                <p>Selesaikan pembayaran dengan metode yang tersedia.</p>
+            </div>
+
+            <div class="reservasi-card">
+                <div class="step-number">4</div>
+                <i class="fa-solid fa-ticket"></i>
+                <h3>Cetak Tiket</h3>
+                <p>Tiket siap digunakan dan dapat dicetak atau disimpan.</p>
+            </div>
+
+        </div>
     </div>
 </section>
 
