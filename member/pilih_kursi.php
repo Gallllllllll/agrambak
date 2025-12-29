@@ -28,19 +28,24 @@ $jadwal = $stmt->fetch(PDO::FETCH_ASSOC);
 
 if (!$jadwal) die("Jadwal tidak ditemukan");
 
-// Ambil status kursi yang sudah terisi
+// reset kursi diblock yang sudah kadaluarsa
+$pdo->exec("
+    UPDATE seat_booking
+    SET status='kosong', blocked_until=NULL, penumpang_id=NULL
+    WHERE status='diblock' AND blocked_until < NOW()
+");
+
+// ambil status kursi terbaru setelah reset
 $stmt2 = $pdo->prepare("
     SELECT nomor_kursi
     FROM seat_booking
     WHERE jadwal_id = ?
-    AND (
-        status = 'terisi' OR status = 'diblock'
-        OR (status = 'diblock' AND blocked_until > NOW())
-    )
-
+    AND status IN ('terisi','diblock')
 ");
 $stmt2->execute([$jadwal_id]);
 $filled = $stmt2->fetchAll(PDO::FETCH_COLUMN);
+
+
 
 // Ambil seatmap bus
 $stmt3 = $pdo->prepare("

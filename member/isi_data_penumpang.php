@@ -74,8 +74,16 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $seat
         ]);
 
-        // JANGAN update seat_booking pakai reservasi_id
-        // kursi tetap diblock sampai pembayaran
+        // ambil penumpang_id yang baru dibuat
+        $penumpang_id = $pdo->lastInsertId();
+
+        // update seat_booking agar terhubung dengan penumpang
+        $stmtUpdateSeat = $pdo->prepare("
+            UPDATE seat_booking
+            SET penumpang_id = ?
+            WHERE jadwal_id = ? AND nomor_kursi = ?
+        ");
+        $stmtUpdateSeat->execute([$penumpang_id, $reservasi['jadwal_id'], $seat]);
 
         $pdo->commit();
 
@@ -92,8 +100,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             WHERE reservasi_id = ?
         ")->execute([$reservasi_id]);
 
-        die("Gagal menyimpan data penumpang.");
+        die("Gagal menyimpan data penumpang: " . $e->getMessage());
     }
+
 }
 ?>
 
