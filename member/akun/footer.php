@@ -14,11 +14,6 @@
             </small>
         </div>
 
-        <div class="footer-menu">
-            <a href="#">Tentang Kami</a>
-            <a href="#">Fasilitas</a>
-        </div>
-
         <!-- PETA LOKASI -->
         <div class="footer-social">
             <div>

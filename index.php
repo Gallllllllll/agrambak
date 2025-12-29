@@ -1,6 +1,7 @@
 <?php
 session_start();
 require "config/database.php";
+$page_type = 'public';
 
 // Jika sudah login, langsung arahkan ke dashboard member
 if (isset($_SESSION['user']) && is_array($_SESSION['user'])) {
