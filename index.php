@@ -210,6 +210,84 @@ foreach ($tipeArmada as $t) {
             font-weight: bold;
             font-size: 18px;
         }
+        /* ================= HERO ================= */
+        .hero {
+            position: relative;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Overlay gelap kiri */
+        .hero-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(
+                to right,
+                rgba(0,0,0,1) 0%,
+                rgba(0,0,0,0.6) 40%,
+                rgba(0,0,0,0.1) 70%,
+                rgba(0,0,0,0) 100%
+            );
+            z-index: 2;
+        }
+
+        /* Konten teks */
+        .hero-content {
+            position: absolute;
+            z-index: 3;
+            top: 50%;
+            left: 8%;
+            transform: translateY(-50%);
+            max-width: 500px;
+            color: #fff;
+        }
+
+        .hero-content h1 {
+            font-size: 52px;
+            font-weight: 800;
+            margin-bottom: 10px;
+        }
+
+        .hero-content h3 {
+            font-size: 24px;
+            font-weight: 500;
+            margin-bottom: 15px;
+            color: #7eade3ff;
+        }
+
+        .hero-content p {
+            font-size: 16px;
+            line-height: 1.6;
+            color: #eaeaea;
+        }
+
+        /* Slider image */
+        .hero .slides img {
+            width: 100%;
+            height: 100vh;
+            object-fit: cover;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero-content {
+                left: 6%;
+                right: 6%;
+                max-width: unset;
+            }
+
+            .hero-content h1 {
+                font-size: 36px;
+            }
+
+            .hero-content h3 {
+                font-size: 18px;
+            }
+
+            .hero-content p {
+                font-size: 14px;
+            }
+        }
 
     </style>
 </head>
@@ -217,6 +295,14 @@ foreach ($tipeArmada as $t) {
 <?php include "navguest.php"; ?>
 <!-- HERO SLIDER -->
 <section class="hero">
+    <div class="hero-overlay"></div>
+    <div class="hero-content">
+        <h1>PT Tranzio</h1>
+        <h3>Your Reliable Travel Partner</h3>
+        <p>
+            Untuk perjalanan bus antar kota yang aman, nyaman, dan terpercaya.
+        </p>
+    </div>
     <div class="slides">
         <img src="aset/img/hero1.png" class="active">
         <img src="aset/img/hero2.png">
