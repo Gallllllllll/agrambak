@@ -17,9 +17,10 @@ if (!$reservasi_id || !is_numeric($reservasi_id)) {
     die("Reservasi tidak valid.");
 }
 
+// pastikan reservasi milik user
 $stmt = $pdo->prepare("
-    SELECT * FROM reservasi 
-    WHERE reservasi_id = ? 
+    SELECT * FROM reservasi
+    WHERE reservasi_id = ?
     AND user_id = ?
 ");
 $stmt->execute([$reservasi_id, $user['user_id']]);
@@ -30,47 +31,16 @@ if (!$reservasi) {
 }
 
 /* ===============================
-   AMBIL KURSI (1 SAJA)
+   AMBIL KURSI DARI SESSION
 ================================ */
-// Ambil kursi dari reservasi, jika sudah ada
-$stmt = $pdo->prepare("
-    SELECT nomor_kursi 
-    FROM seat_booking 
-    WHERE reservasi_id = ?
-    LIMIT 1
-");
-$stmt->execute([$reservasi_id]);
-$seat = $stmt->fetchColumn();
-
-if (!$seat) {
-    // Jika belum ada, ambil kursi kosong dari jadwal
-    $stmt2 = $pdo->prepare("
-        SELECT nomor_kursi 
-        FROM seat_booking 
-        WHERE jadwal_id = ? AND status = 'kosong'
-        LIMIT 1
-    ");
-    $stmt2->execute([$reservasi['jadwal_id']]);
-    $seat = $stmt2->fetchColumn();
-
-    if ($seat) {
-        // Buat seat_booking untuk reservasi baru
-        $pdo->prepare("
-            INSERT INTO seat_booking (jadwal_id, nomor_kursi, penumpang_id, status, reservasi_id)
-            VALUES (?, ?, NULL, 'kosong', ?)
-        ")->execute([$reservasi['jadwal_id'], $seat, $reservasi_id]);
-    } else {
-        // Tidak ada kursi sama sekali
-        $pdo->prepare("
-            UPDATE reservasi 
-            SET status = 'gagal' 
-            WHERE reservasi_id = ?
-        ")->execute([$reservasi_id]);
-
-        die("Kursi tidak ditemukan atau reservasi dibatalkan.");
-    }
+if (!isset($_SESSION['selected_seats'][$reservasi_id])) {
+    die("Data kursi tidak ditemukan atau sudah kadaluarsa.");
 }
 
+$kursi = $_SESSION['selected_seats'][$reservasi_id];
+
+// karena halaman ini 1 penumpang
+$seat = $kursi[0];
 
 /* ===============================
    SIMPAN DATA PENUMPANG
@@ -89,9 +59,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     try {
         $pdo->beginTransaction();
 
-        // Insert penumpang
+        // insert penumpang
         $stmt = $pdo->prepare("
-            INSERT INTO penumpang 
+            INSERT INTO penumpang
             (reservasi_id, nama_penumpang, nik, email, telepon, nomor_kursi)
             VALUES (?, ?, ?, ?, ?, ?)
         ");
@@ -104,37 +74,20 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $seat
         ]);
 
-        $penumpang_id = $pdo->lastInsertId();
-
-        // Update seat_booking
-        $stmt = $pdo->prepare("
-            UPDATE seat_booking 
-            SET penumpang_id = ?
-            WHERE reservasi_id = ? 
-            AND nomor_kursi = ?
-        ");
-        $stmt->execute([$penumpang_id, $reservasi_id, $seat]);
-
-        // Update status reservasi → BERHASIL
-        $stmt = $pdo->prepare("
-            UPDATE reservasi 
-            SET status = 'berhasil'
-            WHERE reservasi_id = ?
-        ");
-        $stmt->execute([$reservasi_id]);
+        // JANGAN update seat_booking pakai reservasi_id
+        // kursi tetap diblock sampai pembayaran
 
         $pdo->commit();
 
-        // Kembali ke dashboard
         header("Location: upload_pembayaran_form.php?reservasi_id=$reservasi_id");
         exit;
 
     } catch (Exception $e) {
         $pdo->rollBack();
 
-        // Gagal total
+        // gagal → tandai reservasi
         $pdo->prepare("
-            UPDATE reservasi 
+            UPDATE reservasi
             SET status = 'gagal'
             WHERE reservasi_id = ?
         ")->execute([$reservasi_id]);
@@ -153,7 +106,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 <style>
 body {
     background: #2f405a;
-    color: #333;
     font-family: Arial, sans-serif;
 }
 
@@ -171,17 +123,13 @@ form {
 fieldset {
     background: #fff;
     border-radius: 15px;
-    padding: 20px;
+    padding: 15px;
     box-shadow: 0 8px 20px rgba(0,0,0,.15);
     border: none;
 }
 
 legend {
     font-weight: bold;
-    color: #2c3e50;
-    padding: 5px 15px;
-    background: #fff;
-    border-radius: 10px;
 }
 
 .form-group {
@@ -192,7 +140,6 @@ legend {
 
 label {
     font-weight: bold;
-    margin-bottom: 5px;
 }
 
 input {
@@ -212,21 +159,19 @@ button {
     font-size: 16px;
     cursor: pointer;
 }
-button:hover {
-    background: #219150;
-}
 </style>
 </head>
-<body>
 
+<body>
 <?php include __DIR__ . "/nav.php"; ?>
 
 <h2>Isi Data Penumpang</h2>
 
 <form method="post">
     <fieldset>
-        <legend>Kursi <?= htmlspecialchars($seat) ?></legend>
-
+        <div class="form-group">
+            <legend>Kursi <?= htmlspecialchars($seat) ?></legend>
+        </div>
         <div class="form-group">
             <label>Nama</label>
             <input type="text" name="nama" required>
@@ -250,6 +195,5 @@ button:hover {
 
     <button type="submit">Simpan</button>
 </form>
-
 </body>
 </html>

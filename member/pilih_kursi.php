@@ -32,7 +32,12 @@ if (!$jadwal) die("Jadwal tidak ditemukan");
 $stmt2 = $pdo->prepare("
     SELECT nomor_kursi
     FROM seat_booking
-    WHERE jadwal_id = ? AND status = 'terisi'
+    WHERE jadwal_id = ?
+    AND (
+        status = 'terisi' OR status = 'diblock'
+        OR (status = 'diblock' AND blocked_until > NOW())
+    )
+
 ");
 $stmt2->execute([$jadwal_id]);
 $filled = $stmt2->fetchAll(PDO::FETCH_COLUMN);
@@ -188,6 +193,16 @@ foreach ($rows as $row):
 
 </div>
 <?php endforeach; ?>
+<div style="margin-top:15px; text-align:center; font-size:14px;">
+    <span style="display:inline-block;width:20px;height:20px;background:#2ecc71;border-radius:5px;"></span>
+    Kursi Kosong
+    &nbsp;&nbsp;
+    <span style="display:inline-block;width:20px;height:20px;background:#e74c3c;border-radius:5px;"></span>
+    Kursi Terisi
+    &nbsp;&nbsp;
+    <span style="display:inline-block;width:20px;height:20px;background:#3498db;border-radius:5px;"></span>
+    Dipilih
+</div>
 </div>
 
 <button type="submit">Pesan</button>
@@ -196,8 +211,9 @@ foreach ($rows as $row):
 <?php include __DIR__ . "/footer.php"; ?>
 
 <script>
-// hanya kursi kosong yang bisa diklik
-document.querySelectorAll('.seat.kosong').forEach(seat => {
+document.querySelectorAll('.seat').forEach(seat => {
+    if (seat.classList.contains('terisi')) return;
+
     seat.addEventListener('click', () => {
         document.querySelectorAll('.seat.selected').forEach(s => {
             s.classList.remove('selected');
@@ -209,7 +225,6 @@ document.querySelectorAll('.seat.kosong').forEach(seat => {
     });
 });
 
-// validasi submit
 document.querySelector('form').addEventListener('submit', e => {
     if (!document.querySelector('input[name="kursi"]:checked')) {
         e.preventDefault();
@@ -217,6 +232,7 @@ document.querySelector('form').addEventListener('submit', e => {
     }
 });
 </script>
+
 
 </body>
 </html>

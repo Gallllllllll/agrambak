@@ -43,8 +43,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->execute([$reservasi_id]);
 
         // Kembalikan kursi menjadi kosong
-        $stmt = $pdo->prepare("UPDATE seat_booking SET status='kosong' WHERE reservasi_id=?");
+        // ambil jadwal_id reservasi
+        $stmt = $pdo->prepare("SELECT jadwal_id FROM reservasi WHERE reservasi_id=?");
         $stmt->execute([$reservasi_id]);
+        $res = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$res) {
+            throw new Exception("Reservasi tidak ditemukan.");
+        }
+
+        $jadwal_id = $res['jadwal_id'];
+
+        // ambil kursi dari detail_reservasi
+        $stmt = $pdo->prepare("
+            SELECT nomor_kursi
+            FROM penumpang
+            WHERE reservasi_id=?
+        ");
+        $stmt->execute([$reservasi_id]);
+        $kursi = $stmt->fetchAll(PDO::FETCH_COLUMN);
+
+        // kembalikan kursi ke kosong
+        $stmt = $pdo->prepare("
+            UPDATE seat_booking
+            SET status='kosong', blocked_until=NULL
+            WHERE jadwal_id=? AND nomor_kursi=?
+        ");
+
+        foreach ($kursi as $s) {
+            $stmt->execute([$jadwal_id, $s]);
+        }
+
 
         $pdo->commit();
     } catch (Exception $e) {

@@ -9,53 +9,64 @@ if (!isset($_SESSION["user"])) {
 
 $user = $_SESSION["user"];
 
-// Ambil kursi dari session
 $reservasi_id = $_GET['reservasi_id'] ?? null;
-if (!$reservasi_id) die("Reservasi tidak ditemukan.");
+if (!$reservasi_id || !is_numeric($reservasi_id)) {
+    die("Reservasi tidak valid.");
+}
 
-$stmt = $pdo->prepare("SELECT * FROM reservasi WHERE reservasi_id=? AND user_id=?");
+// ======================
+// AMBIL DATA RESERVASI
+// ======================
+$stmt = $pdo->prepare("
+    SELECT * FROM reservasi
+    WHERE reservasi_id=? AND user_id=?
+");
 $stmt->execute([$reservasi_id, $user['user_id']]);
 $reservasi = $stmt->fetch(PDO::FETCH_ASSOC);
-if (!$reservasi) die("Reservasi tidak ditemukan.");
 
-$kursi = $_SESSION['selected_seats'][$reservasi_id] ?? [];
+if (!$reservasi) {
+    die("Reservasi tidak ditemukan.");
+}
 
+// ======================
+// AMBIL KURSI DARI SESSION
+// ======================
+if (!isset($_SESSION['selected_seats'][$reservasi_id])) {
+    die("Data kursi tidak ditemukan atau sudah kadaluarsa.");
+}
+
+$kursi = $_SESSION['selected_seats'][$reservasi_id];
+
+// ======================
+// PROSES UPLOAD
+// ======================
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
     $metode = $_POST['metode'];
     $file   = $_FILES['bukti_transfer'];
 
     // ======================
-    // CEK KURSI MASIH KOSONG
+    // CEK KURSI MASIH TERSEDIA
     // ======================
-    $kursi_terisi = [];
-    $stmtCheck = $pdo->prepare("SELECT status FROM seat_booking WHERE reservasi_id=? AND nomor_kursi=?");
+    $stmtCheck = $pdo->prepare("
+        SELECT status, blocked_until
+        FROM seat_booking
+        WHERE jadwal_id=? AND nomor_kursi=?
+    ");
+
     foreach ($kursi as $s) {
-        $stmtCheck->execute([$reservasi_id, $s]);
+        $stmtCheck->execute([$reservasi['jadwal_id'], $s]);
         $seat = $stmtCheck->fetch(PDO::FETCH_ASSOC);
-        if ($seat && $seat['status'] === 'terisi') {
-            $kursi_terisi[] = $s;
+
+        // Kalau kursinya benar-benar sudah terisi orang lain
+        if (!$seat || $seat['status'] === 'terisi') {
+            die("Kursi $s sudah tidak tersedia.");
         }
     }
 
-    if (!empty($kursi_terisi)) {
-        $list = implode(", ", $kursi_terisi);
-        echo "
-        <script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
-        <script>
-        Swal.fire({
-            icon: 'error',
-            title: 'Kursi sudah terisi',
-            html: 'Kursi berikut sudah tidak tersedia: <b>$list</b>',
-            confirmButtonText: 'OK'
-        }).then(() => {
-            window.location.href='status_pemesanan.php';
-        });
-        </script>";
-        exit;
-    }
 
     // ======================
-    // UPLOAD BUKTI TRANSFER
+    // UPLOAD FILE
     // ======================
     $nama_file = time() . "_" . basename($file['name']);
     move_uploaded_file($file['tmp_name'], "../uploads/" . $nama_file);
@@ -63,29 +74,54 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
         $pdo->beginTransaction();
 
-        // Insert pembayaran
+        // ======================
+        // INSERT PEMBAYARAN
+        // ======================
         $ref_number = 'TRX-' . date('Ymd') . '-' . strtoupper(substr(bin2hex(random_bytes(3)),0,6));
+
         $stmt = $pdo->prepare("
-            INSERT INTO pembayaran (reservasi_id, ref_number, metode, jumlah, bukti_transfer, status, waktu_bayar)
+            INSERT INTO pembayaran
+            (reservasi_id, ref_number, metode, jumlah, bukti_transfer, status, waktu_bayar)
             VALUES (?, ?, ?, ?, ?, 'berhasil', NOW())
         ");
-        $stmt->execute([$reservasi_id, $ref_number, $metode, $reservasi['total_harga'], $nama_file]);
+        $stmt->execute([
+            $reservasi_id,
+            $ref_number,
+            $metode,
+            $reservasi['total_harga'],
+            $nama_file
+        ]);
 
-        // Update seat_booking jadi terisi
+        // ======================
+        // UPDATE KURSI JADI TERISI
+        // ======================
         $stmtUpdate = $pdo->prepare("
-            UPDATE seat_booking SET status='terisi' WHERE reservasi_id=? AND nomor_kursi=?
+            UPDATE seat_booking
+            SET status='terisi',
+                blocked_until=NULL
+            WHERE jadwal_id=?
+                AND nomor_kursi=?
+                AND status='diblock'
         ");
+
         foreach ($kursi as $s) {
-            $stmtUpdate->execute([$reservasi_id, $s]);
+            $stmtUpdate->execute([$reservasi['jadwal_id'], $s]);
         }
 
-        // Update status reservasi jadi lunas
-        $stmt = $pdo->prepare("UPDATE reservasi SET status='lunas' WHERE reservasi_id=?");
+        // ======================
+        // UPDATE RESERVASI
+        // ======================
+        $stmt = $pdo->prepare("
+            UPDATE reservasi SET status='lunas'
+            WHERE reservasi_id=?
+        ");
         $stmt->execute([$reservasi_id]);
 
         $pdo->commit();
 
-        // Hapus session
+        // ======================
+        // BERSIHKAN SESSION
+        // ======================
         unset($_SESSION['selected_seats'][$reservasi_id]);
 
         header("Location: status_pemesanan.php?reservasi_id=$reservasi_id");
@@ -97,7 +133,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 ?>
-
 
 <!DOCTYPE html>
 <html lang="id">
