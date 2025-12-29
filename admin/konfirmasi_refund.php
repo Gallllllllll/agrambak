@@ -125,9 +125,11 @@ $refunds = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 <div class="main-content">
 
-    <div class="dashboard-header mb-3">
-        <h1>Konfirmasi Refund</h1>
-        <p>Kelola permintaan refund pengguna</p>
+<div class="dashboard-header">
+        <div>
+            <h1>Konfirmasi Refund</h1>
+            <p>Kelola permintaan refund pengguna</p>
+        </div>
     </div>
 
     <div class="table-responsive">

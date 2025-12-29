@@ -34,8 +34,11 @@ $tipeBus = $pdo->query("SELECT * FROM armada_tipe")->fetchAll();
 <div class="main-content">
 
     <div class="dashboard-header">
+        <div>
         <h1>Manajemen Armada</h1>
-        <p>Kelola data armada bus</p>
+        <p>Kelola data armada bus</p>    
+        </div>
+        
     </div>
 
     <div class="mb-3 d-flex justify-content-between align-items-center">

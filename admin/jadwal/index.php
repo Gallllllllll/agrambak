@@ -37,10 +37,12 @@ $jadwal = $stmt->fetchAll();
 
     <!-- HEADER -->
     <div class="dashboard-header mb-3">
+        <div>
         <h1>Data Jadwal</h1>
         <p>Kelola jadwal keberangkatan bus</p>
+        </div>
     </div>
-
+    
     <!-- TABLE -->
     <div class="table-responsive">
         <table id="jadwalTable" class="table table-striped align-middle">

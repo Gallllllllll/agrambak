@@ -48,8 +48,11 @@ $rutes = $pdo->query("
 
     <!-- HEADER -->
     <div class="dashboard-header mb-3">
+        <div>
         <h1>Daftar Rute</h1>
-        <p>Kelola rute perjalanan bus</p>
+        <p>Kelola rute perjalanan bus</p>    
+        </div>
+        
     </div>
 
     <!-- ACTION BAR -->
