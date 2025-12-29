@@ -17,36 +17,70 @@ if (isset($_POST['kode_booking'])) {
     $kode = trim($_POST['kode_booking']);
 
     $stmt = $pdo->prepare("
-        SELECT reservasi_id, jadwal_id, waktu_checkin 
-        FROM reservasi 
-        WHERE kode_booking = ? AND user_id = ?
+        SELECT 
+            r.reservasi_id,
+            r.jadwal_id,
+            r.waktu_checkin,
+            p.status AS pembayaran_status,
+            b.status AS refund_status
+        FROM reservasi r
+        LEFT JOIN pembayaran p 
+            ON p.reservasi_id = r.reservasi_id
+            AND p.waktu_bayar = (
+                SELECT MAX(waktu_bayar) 
+                FROM pembayaran 
+                WHERE reservasi_id = r.reservasi_id
+            )
+        LEFT JOIN pembatalan b 
+            ON b.reservasi_id = r.reservasi_id
+        WHERE r.kode_booking = ?
+        AND r.user_id = ?
     ");
     $stmt->execute([$kode, $user['user_id']]);
     $res = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$res) {
         $message = "Kode booking tidak ditemukan.";
+
+    } elseif ($res['pembayaran_status'] !== 'berhasil') {
+        $message = "Check-in gagal. Tiket belum lunas atau pembayaran gagal.";
+
+    } elseif (!empty($res['refund_status']) && $res['refund_status'] === 'Disetujui') {
+        $message = "Check-in tidak dapat dilakukan. Tiket telah direfund.";
+
     } elseif (!empty($res['waktu_checkin'])) {
         $message = "Tiket ini sudah check-in.";
+
     } else {
-        $pdo->beginTransaction();
 
-        $pdo->prepare("
-            UPDATE reservasi 
-            SET waktu_checkin = NOW() 
-            WHERE reservasi_id = ?
-        ")->execute([$res['reservasi_id']]);
+        try {
+            $pdo->beginTransaction();
 
-        $stmt = $pdo->prepare("
-            UPDATE seat_booking 
-            SET status='terisi' 
-            WHERE jadwal_id=? AND penumpang_id=?
-        ");
-        $stmt->execute([$res['jadwal_id'], $user['user_id']]);
+            // simpan waktu check-in
+            $pdo->prepare("
+                UPDATE reservasi 
+                SET waktu_checkin = NOW() 
+                WHERE reservasi_id = ?
+            ")->execute([$res['reservasi_id']]);
 
-        $pdo->commit();
-        $message = "Check-in berhasil.";
+            // update kursi jadi terisi
+            $stmt = $pdo->prepare("
+                UPDATE seat_booking 
+                SET status = 'terisi' 
+                WHERE jadwal_id = ?
+                AND penumpang_id = ?
+            ");
+            $stmt->execute([$res['jadwal_id'], $user['user_id']]);
+
+            $pdo->commit();
+            $message = "Check-in berhasil.";
+
+        } catch (Exception $e) {
+            $pdo->rollBack();
+            $message = "Check-in gagal. Silakan coba lagi.";
+        }
     }
+
 }
 
 
