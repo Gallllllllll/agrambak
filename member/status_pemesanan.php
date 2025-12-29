@@ -13,36 +13,42 @@ $message = "";
 /* =====================
    PROSES CHECK-IN
 ===================== */
-if (isset($_POST['checkin_reservasi_id'])) {
-    $rid = $_POST['checkin_reservasi_id'];
+if (isset($_POST['kode_booking'])) {
+    $kode = trim($_POST['kode_booking']);
 
-    $stmt = $pdo->prepare("SELECT jadwal_id, waktu_checkin FROM reservasi WHERE reservasi_id=? AND user_id=?");
-    $stmt->execute([$rid, $user['user_id']]);
+    $stmt = $pdo->prepare("
+        SELECT reservasi_id, jadwal_id, waktu_checkin 
+        FROM reservasi 
+        WHERE kode_booking = ? AND user_id = ?
+    ");
+    $stmt->execute([$kode, $user['user_id']]);
     $res = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$res) {
-        $message = "Reservasi tidak ditemukan.";
+        $message = "Kode booking tidak ditemukan.";
     } elseif (!empty($res['waktu_checkin'])) {
-        $message = "Reservasi sudah check-in.";
+        $message = "Tiket ini sudah check-in.";
     } else {
         $pdo->beginTransaction();
 
-        $pdo->prepare("UPDATE reservasi SET waktu_checkin=NOW() WHERE reservasi_id=?")
-            ->execute([$rid]);
+        $pdo->prepare("
+            UPDATE reservasi 
+            SET waktu_checkin = NOW() 
+            WHERE reservasi_id = ?
+        ")->execute([$res['reservasi_id']]);
 
-        $stmt = $pdo->prepare("SELECT nomor_kursi FROM seat_booking WHERE jadwal_id=? AND penumpang_id=?");
+        $stmt = $pdo->prepare("
+            UPDATE seat_booking 
+            SET status='terisi' 
+            WHERE jadwal_id=? AND penumpang_id=?
+        ");
         $stmt->execute([$res['jadwal_id'], $user['user_id']]);
-        $kursi = $stmt->fetchAll(PDO::FETCH_COLUMN);
-
-        $stmt = $pdo->prepare("UPDATE seat_booking SET status='terisi' WHERE jadwal_id=? AND nomor_kursi=?");
-        foreach ($kursi as $k) {
-            $stmt->execute([$res['jadwal_id'], $k]);
-        }
 
         $pdo->commit();
         $message = "Check-in berhasil.";
     }
 }
+
 
 /* =====================
    AMBIL DATA RESERVASI
@@ -275,6 +281,11 @@ body {
 <div class="container">
 
 <h2 style="color:white;">Tiket Saya</h2>
+<button class="btn btn-checkin" 
+        style="width:100%; margin-bottom:25px; padding:14px; font-size:16px;"
+        onclick="openCheckinModal()">
+    Check-In Tiket
+</button>
 
 <?php if ($message): ?>
     <div class="alert"><?= htmlspecialchars($message) ?></div>
@@ -355,17 +366,6 @@ if (!empty($r['waktu_checkin'])) {
         <a href="detail_reservasi.php?reservasi_id=<?= $r['reservasi_id'] ?>" class="btn btn-detail">Detail</a>
 
         <?php
-        // tombol Check-In hanya aktif jika status pembayaran Lunas, refund belum disetujui, dan belum check-in
-        if ($status === 'berhasil' && empty($r['waktu_checkin']) && (empty($r['refund_status']) || $r['refund_status'] !== 'Disetujui')): ?>
-            <form method="POST" style="display:inline;">
-                <input type="hidden" name="checkin_reservasi_id" value="<?= $r['reservasi_id'] ?>">
-                <button class="btn btn-checkin">Check-In</button>
-            </form>
-        <?php else: ?>
-            <button class="btn btn-disabled" disabled>Check-In</button>
-        <?php endif; ?>
-
-        <?php
         // tombol Refund hanya aktif jika pembayaran Lunas, belum check-in, dan refund belum disetujui
         if ($status === 'berhasil' && empty($r['waktu_checkin']) && (empty($r['refund_status']) || $r['refund_status'] !== 'Disetujui')): ?>
             <a href="ajukan_refund.php?reservasi_id=<?= $r['reservasi_id'] ?>" class="btn btn-refund">Refund</a>
@@ -383,6 +383,45 @@ if (!empty($r['waktu_checkin'])) {
 <?php endif; ?>
 
 </div>
+<!-- MODAL CHECK-IN -->
+<div id="checkinModal" style="
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.6);
+    justify-content:center;
+    align-items:center;
+    z-index:9999;
+">
+    <div style="background:#fff; padding:25px; border-radius:15px; width:320px;">
+        <h3>Check-In Tiket</h3>
+
+        <form method="POST">
+            <input type="text" name="kode_booking"
+                   placeholder="Masukkan kode booking"
+                   required
+                   style="width:100%; padding:10px; margin:10px 0;">
+            <button class="btn btn-checkin" style="width:100%;">
+                Check-In
+            </button>
+        </form>
+
+        <button onclick="closeCheckinModal()" 
+                style="margin-top:10px; width:100%; border-radius:15px;">
+            Batal
+        </button>
+    </div>
+</div>
+
+<script>
+function openCheckinModal() {
+    document.getElementById('checkinModal').style.display = 'flex';
+}
+function closeCheckinModal() {
+    document.getElementById('checkinModal').style.display = 'none';
+}
+</script>
+
 <?php include __DIR__ . "/footer.php"; ?>
 </body>
 </html>
