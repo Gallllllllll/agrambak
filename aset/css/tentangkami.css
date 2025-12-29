@@ -1,0 +1,787 @@
+.aboutus-header {
+  background: url("../img/header-aboutus.png") no-repeat center center;
+  background-size: cover;
+  height: 60vh; /* atau sesuai kebutuhan */
+  display: flex;
+  align-items: center;
+}
+
+
+.judulheader {
+  width: 40%;
+  padding-top: 20vh;
+  padding-left: 5vw;
+  padding-bottom: 20vh;
+}
+
+.judulheader h2 {
+  font-weight: 900;
+}
+
+.aboutus-header .container {
+            max-width: 700px;
+        }
+
+        /* Section spacing */
+        section {
+            padding: 60px 0;
+        }
+
+        /* Cards for keunggulan */
+        .feature-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 25px;
+            text-align: center;
+            transition: 0.3s;
+        }
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+        .feature-card i {
+            font-size: 2rem;
+            color: #4e73df;
+            margin-bottom: 15px;
+        }
+
+        /* Armada & Mitra list */
+        .list-group-item {
+            border: none;
+            padding-left: 0;
+        }
+
+        /* Hubungi Kami */
+        .contact-info i {
+            color: #4e73df;
+            margin-right: 10px;
+        }
+
+        main {
+  margin-block-start: 10vh;
+  margin-block-end: 10vh;
+}
+
+.container-subjudul {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-top: 5vh;
+  margin-bottom: 5vh;
+}
+
+.subjudul {
+  display: flex;
+  flex-shrink: 0;
+  align-content: center;
+  align-items: center;
+  text-align: center;
+  object-position: center;
+  justify-self: center;
+  justify-content: center;
+  justify-items: center;
+  margin-bottom: 5px;
+}
+
+.sub-h4 {
+  text-align: center;
+  margin-bottom: 0px;
+  color: #002F6C;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.text-center h3 {
+  font-weight: 900;
+}
+
+.text-center h5 {
+  margin-top: 10vh;
+  background: linear-gradient(to right, #002F6C, black);
+  width: 50%;
+  text-align: center;
+  padding: 10px;
+  color: white;
+  font-weight: 600;
+  border-radius: 25px;
+  align-content: center;
+  align-items: center;
+  text-align: center;
+  object-position: center;
+  justify-self: center;
+  justify-content: center;
+  justify-items: center;
+}
+
+.keunggulan-wrapper {
+    max-width: 1100px;
+}
+
+.feature-card {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 35px 25px;
+    text-align: center;
+    border-top: 5px solid;
+    transition: all 0.35s ease;
+    height: 100%;
+}
+
+.feature-card i {
+    font-size: 2.4rem;
+    margin-bottom: 15px;
+    color: #4e73df;
+}
+
+.feature-card h5 {
+    font-weight: 600;
+    margin-top: 10px;
+}
+
+.feature-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.12);
+}
+
+.contact-card {
+    background: #ffffff;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+    height: 100%;
+}
+
+.contact-card h5 {
+    font-weight: 600;
+}
+
+.contact-info li {
+    margin-bottom: 12px;
+    font-size: 0.95rem;
+}
+
+/* === VISI MISI SECTION === */
+.visi-misi-section {
+    padding: 80px 20px;
+    background: #f9fafc;
+}
+
+/* Title */
+.visi-misi-title {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 60px;
+    color: #002F6C;
+}
+
+.visi-misi-title h2 {
+    font-weight: 800;
+    letter-spacing: 1px;
+}
+
+.visi-misi-title i {
+    color: #f4c430;
+    font-size: 1.2rem;
+}
+
+/* Wrapper */
+.visi-misi-wrapper {
+    display: flex;
+    gap: 40px;
+    max-width: 1100px;
+    margin: auto;
+    flex-wrap: wrap;
+}
+
+/* Card Base */
+.visi-misi-card {
+    background: #ffffff;
+    border-radius: 14px;
+    padding: 40px 35px;
+    flex: 1 1 450px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    transition: all 0.35s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Accent Line */
+.visi-misi-card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 6px;
+    width: 100%;
+}
+
+.visi-card::before {
+    background: linear-gradient(to right, #002F6C, #4e73df);
+}
+
+.misi-card::before {
+    background: linear-gradient(to right, #f4c430, #ffb703);
+}
+
+/* Hover Effect */
+.visi-misi-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 18px 40px rgba(0,0,0,0.12);
+}
+
+/* Card Header */
+.card-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.card-header i {
+    font-size: 2rem;
+    color: #4e73df;
+}
+
+.misi-card .card-header i {
+    color: #f4c430;
+}
+
+.card-header h3 {
+    font-weight: 700;
+    margin: 0;
+}
+
+/* Text */
+.visi-misi-card p {
+    text-align: justify;
+    line-height: 1.7;
+    font-size: 1rem;
+}
+
+.visi-misi-card ul {
+    padding-left: 18px;
+}
+
+.visi-misi-card ul li {
+    margin-bottom: 10px;
+    line-height: 1.6;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .visi-misi-wrapper {
+        gap: 25px;
+    }
+
+    .visi-misi-card {
+        padding: 30px 25px;
+    }
+}
+
+/* === LAYANAN SECTION === */
+.layanan-section {
+    padding: 60px 20px;
+    background: #b5d4ff; /* soft blue */
+}
+
+/* Title */
+.layanan-title {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    margin-bottom: 35px;
+    color: #002F6C;
+}
+
+.layanan-title h2 {
+    font-weight: 800;
+    letter-spacing: 1px;
+}
+
+.layanan-title i {
+    font-size: 1.3rem;
+    color: #4e73df;
+}
+
+/* Card */
+.layanan-card {
+    max-width: 900px;
+    margin: auto;
+    background: #ffffff;
+    border-radius: 14px;
+    padding: 40px 45px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    position: relative;
+    transition: all 0.35s ease;
+}
+
+/* Accent Top Border */
+.layanan-card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 6px;
+    width: 100%;
+    background: linear-gradient(to right, #002F6C, #4e73df);
+}
+
+/* Hover Effect */
+.layanan-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 16px 35px rgba(0,0,0,0.12);
+}
+
+/* List */
+.layanan-card ul {
+    padding-left: 20px;
+    margin-bottom: 20px;
+}
+
+.layanan-card ul li {
+    margin-bottom: 10px;
+    line-height: 1.6;
+    position: relative;
+}
+
+/* Paragraph */
+.layanan-card p {
+    text-align: justify;
+    line-height: 1.7;
+    margin-top: 10px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .layanan-card {
+        padding: 30px 25px;
+    }
+}
+
+/* === KEUNGGULAN SECTION === */
+.keunggulan-section {
+    padding: 60px 20px;
+    background: #f9fafc; /* soft blue */
+}
+
+/* Title */
+.keunggulan-title {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 45px;
+    color: #002F6C;
+}
+
+.keunggulan-title h2 {
+    font-weight: 800;
+    letter-spacing: 1px;
+}
+
+.keunggulan-title i {
+    color: #4e73df;
+    font-size: 1.4rem;
+}
+
+/* Grid 3 x 2 */
+.keunggulan-grid {
+    max-width: 1100px;
+    margin: auto;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 30px;
+}
+
+/* Card */
+.keunggulan-card {
+    background: #ffffff;
+    border-radius: 14px;
+    padding: 35px 25px;
+    text-align: center;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+    transition: all 0.35s ease;
+    position: relative;
+}
+
+/* Hover Animation */
+.keunggulan-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 18px 35px rgba(0,0,0,0.12);
+}
+
+/* Icon */
+.keunggulan-card i {
+    font-size: 2.2rem;
+    margin-bottom: 15px;
+    color: #4e73df;
+}
+
+/* Title */
+.keunggulan-card h5 {
+    font-weight: 600;
+    margin: 0;
+}
+
+/* Border Top Variants */
+.border-blue::before,
+.border-green::before,
+.border-yellow::before,
+.border-cyan::before,
+.border-red::before,
+.border-dark::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 6px;
+    width: 100%;
+    border-radius: 14px 14px 0 0;
+}
+
+.border-blue::before { background: #4e73df; }
+.border-green::before { background: #1cc88a; }
+.border-yellow::before { background: #f6c23e; }
+.border-cyan::before { background: #36b9cc; }
+.border-red::before { background: #e74a3b; }
+.border-dark::before { background: #343a40; }
+
+/* Responsive */
+@media (max-width: 992px) {
+    .keunggulan-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 576px) {
+    .keunggulan-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* === ARMADA & MITRA SECTION === */
+.armada-section {
+    padding: 55px 20px;
+    background: #b5d4ff; /* soft blue */
+}
+
+/* Title */
+.armada-title {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 40px;
+    color: #002F6C;
+}
+
+.armada-title h2 {
+    font-weight: 800;
+    letter-spacing: 1px;
+}
+
+.armada-title i {
+    font-size: 1.4rem;
+    color: #4e73df;
+}
+
+/* Wrapper */
+.armada-wrapper {
+    max-width: 1100px;
+    margin: auto;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 30px;
+}
+
+/* Card */
+.armada-card {
+    background: #ffffff;
+    border-radius: 14px;
+    padding: 30px 25px;
+    text-align: center;
+    box-shadow: 0 8px 22px rgba(0,0,0,0.08);
+    transition: all 0.35s ease;
+    position: relative;
+}
+
+.armada-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 14px 32px rgba(0,0,0,0.12);
+}
+
+/* Icon */
+.armada-card i {
+    font-size: 2.2rem;
+    color: #4e73df;
+    margin-bottom: 15px;
+}
+
+/* Title */
+.armada-card h5 {
+    font-weight: 700;
+    margin-bottom: 10px;
+    color: #002F6C;
+}
+
+/* Text */
+.armada-card p {
+    font-size: 0.95rem;
+    color: #555;
+    line-height: 1.6;
+    margin: 0;
+}
+
+/* Wide card for Mitra */
+.armada-card.wide {
+    grid-column: span 3;
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+    .armada-wrapper {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .armada-card.wide {
+        grid-column: span 2;
+    }
+}
+
+@media (max-width: 576px) {
+    .armada-wrapper {
+        grid-template-columns: 1fr;
+    }
+
+    .armada-card.wide {
+        grid-column: span 1;
+    }
+}
+
+/* === KOMITMEN KAMI SECTION === */
+.komitmen-section {
+    padding: 55px 20px;
+    background: #f9fafc; /* soft blue */
+}
+
+/* Title */
+.komitmen-title {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 40px;
+    color: #002F6C;
+}
+
+.komitmen-title h2 {
+    font-weight: 800;
+    letter-spacing: 1px;
+}
+
+.komitmen-title i {
+    font-size: 1.4rem;
+    color: #4e73df;
+}
+
+/* Wrapper */
+.komitmen-wrapper {
+    max-width: 900px;
+    margin: auto;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 25px;
+}
+
+/* Card */
+.komitmen-card {
+    background: #ffffff;
+    border-radius: 14px;
+    padding: 25px 30px;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    box-shadow: 0 8px 22px rgba(0,0,0,0.08);
+    transition: all 0.35s ease;
+    position: relative;
+}
+
+.komitmen-card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: linear-gradient(to right, #4e73df, #002F6C);
+    border-radius: 14px 14px 0 0;
+}
+
+.komitmen-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 14px 30px rgba(0,0,0,0.12);
+}
+
+/* Icon */
+.komitmen-card i {
+    font-size: 1.6rem;
+    color: #4e73df;
+    min-width: 35px;
+}
+
+/* Text */
+.komitmen-card p {
+    margin: 0;
+    font-size: 1rem;
+    color: #444;
+    line-height: 1.6;
+}
+
+/* Footer text */
+.komitmen-footer {
+    max-width: 800px;
+    margin: 40px auto 0;
+    text-align: center;
+}
+
+.komitmen-footer p {
+    font-size: 1.05rem;
+    color: #333;
+    line-height: 1.7;
+    font-style: italic;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .komitmen-wrapper {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* === HUBUNGI KAMI SECTION === */
+.hubungi-section {
+    padding: 55px 20px;
+    background: #b5d4ff;
+}
+
+/* Title */
+.hubungi-title {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 40px;
+    color: #002F6C;
+}
+
+.hubungi-title h2 {
+    font-weight: 800;
+    letter-spacing: 1px;
+}
+
+.hubungi-title i {
+    font-size: 1.4rem;
+    color: #4e73df;
+}
+
+/* Wrapper */
+.hubungi-wrapper {
+    max-width: 1000px;
+    margin: auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+}
+
+/* Card Base */
+.contact-card,
+.saran-card {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 30px;
+    box-shadow: 0 10px 26px rgba(0,0,0,0.08);
+}
+
+/* Contact Info */
+.contact-card h3,
+.saran-card h3 {
+    font-weight: 700;
+    margin-bottom: 20px;
+    color: #002F6C;
+}
+
+.contact-info {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.contact-info li {
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+    margin-bottom: 18px;
+    color: #444;
+    line-height: 1.6;
+}
+
+.contact-info i {
+    font-size: 1.2rem;
+    color: #4e73df;
+    margin-top: 4px;
+}
+
+/* Kritik & Saran */
+.saran-card p {
+    font-size: 0.95rem;
+    color: #555;
+    margin-bottom: 15px;
+}
+
+.saran-card textarea {
+    width: 100%;
+    min-height: 130px;
+    padding: 14px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    resize: vertical;
+    font-size: 0.95rem;
+    margin-bottom: 15px;
+}
+
+.saran-card textarea:focus {
+    outline: none;
+    border-color: #4e73df;
+}
+
+.saran-card button {
+    background: linear-gradient(to right, #4e73df, #002F6C);
+    color: #fff;
+    border: none;
+    padding: 12px 22px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: 0.3s ease;
+}
+
+.saran-card button i {
+    margin-right: 6px;
+}
+
+.saran-card button:hover {
+    opacity: 0.9;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .hubungi-wrapper {
+        grid-template-columns: 1fr;
+    }
+}

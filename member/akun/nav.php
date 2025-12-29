@@ -47,7 +47,7 @@ $profileImgPath = $profileImg ? $baseUrl.'/../../uploads/'.htmlspecialchars($pro
     <ul class="menu desktop-menu">
         <li><a href="<?= $baseUrl ?>/../dashboard.php">Dashboard</a></li>
         <li><a href="<?= $baseUrl ?>/../status_pemesanan.php">Tiket Saya</a></li>
-        <li><a href="#">Tentang Kami</a></li>
+        <li><a href="<?= $baseUrl ?>/../../tentangkami.php">Tentang Kami</a></li>
         <li><a href="<?= $baseUrl ?>/../../auth/logout.php">Logout</a></li>
     </ul>
 
