@@ -112,7 +112,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // UPDATE RESERVASI
         // ======================
         $stmt = $pdo->prepare("
-            UPDATE reservasi SET status='lunas'
+            UPDATE reservasi SET status='Dipesan'
             WHERE reservasi_id=?
         ");
         $stmt->execute([$reservasi_id]);

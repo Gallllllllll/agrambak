@@ -97,10 +97,12 @@ try {
     ================================ */
     $stmt = $pdo->prepare("
         UPDATE reservasi 
-        SET status = 'lunas' 
-        WHERE reservasi_id = ?
+        SET status = 'Dipesan' 
+        WHERE reservasi_id = ? AND user_id = ?
     ");
-    $stmt->execute([$reservasi_id]);
+    if (!$stmt->execute([$reservasi_id, $user['id']])) {
+    print_r($stmt->errorInfo());
+}
 
     $pdo->commit();
 

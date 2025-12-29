@@ -46,8 +46,8 @@ try {
         VALUES (?, ?, ?, ?, ?, 'pending', NOW())
     ");
     $stmt->execute([
-        $user['user_id'],
-        $jadwal_id,
+        (int)$user['user_id'],
+        (int)$jadwal_id,
         $kode_booking,
         count($kursi),
         $total_harga

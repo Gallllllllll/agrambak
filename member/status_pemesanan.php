@@ -59,7 +59,8 @@ if (isset($_POST['kode_booking'])) {
             // simpan waktu check-in
             $pdo->prepare("
                 UPDATE reservasi 
-                SET waktu_checkin = NOW() 
+                SET status = 'Check-in', 
+                waktu_checkin = NOW() 
                 WHERE reservasi_id = ?
             ")->execute([$res['reservasi_id']]);
 

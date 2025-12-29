@@ -96,7 +96,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         // gagal → tandai reservasi
         $pdo->prepare("
             UPDATE reservasi
-            SET status = 'gagal'
+            SET status = 'Dibatalkan'
             WHERE reservasi_id = ?
         ")->execute([$reservasi_id]);
 

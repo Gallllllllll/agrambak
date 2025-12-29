@@ -59,10 +59,10 @@ try {
     ================================ */
     $stmt = $pdo->prepare("
         UPDATE reservasi 
-        SET status = 'Check-In'
-        WHERE reservasi_id = ?
+        SET status = 'Check-in'
+        WHERE reservasi_id = ?  
     ");
-    $stmt->execute([$reservasi_id]);
+    $stmt->execute([(int)$reservasi_id]);
 
     /* ===============================
        UPDATE STATUS KURSI → terisi
