@@ -74,7 +74,7 @@ require_once __DIR__ . '/../config/base_url.php';
     </li>
 
     <li>
-        <a href="<?= $BASE_ADMIN_URL ?>kritik_saran.php" class="<?= str_contains($currentUri, '/blog/') ? 'active' : '' ?>">
+        <a href="<?= $BASE_ADMIN_URL ?>kritik_saran.php" class="<?= str_contains($currentUri, 'kritik_saran.php') ? 'active' : '' ?>">
             <i class="fa-solid fa-comment-dots"></i>
             <span>Kritik Saran</span>
         </a>
