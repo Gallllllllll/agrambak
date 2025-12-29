@@ -60,6 +60,13 @@ require_once __DIR__ . '/../config/base_url.php';
     </li>
 
     <li>
+        <a href="<?= $BASE_ADMIN_URL ?>reservasi.php" class="<?= strpos($currentUri, '/admin/konfirmasi_refund.php') !== false ? 'active' : '' ?>">
+            <i class="fa-solid fa-list"></i>
+            <span>Riwayat Reservasi</span>
+        </a>
+    </li>
+
+    <li>
         <a href="<?= $BASE_ADMIN_URL ?>blog/index.php" class="<?= str_contains($currentUri, '/blog/') ? 'active' : '' ?>">
             <i class="fa-solid fa-newspaper"></i>
             <span>Blog</span>
