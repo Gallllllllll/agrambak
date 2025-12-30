@@ -1,4 +1,5 @@
 <?php
+session_start();
 require "../config/database.php";
 
 $blog_id = $_GET['blog_id'] ?? null;
@@ -84,7 +85,16 @@ if (!$blog) {
 </head>
 <body>
 
-<?php include "nav.php"; ?>
+<?php
+if (isset($_SESSION['user']) && is_array($_SESSION['user'])) {
+    // Sudah login (member)
+    include "nav.php";
+} else {
+    // Guest / belum login
+    include "../navguest.php";
+}
+?>
+
 
 <div class="blog-container">
 
@@ -108,9 +118,12 @@ if (!$blog) {
         <?= nl2br(htmlspecialchars($blog['konten'])) ?>
     </div>
 
-    <a href="dashboard.php" class="btn-back">
-        ← Kembali ke Dashboard
-    </a>
+    <?php if (isset($_SESSION['user'])): ?>
+        <a href="dashboard.php" class="btn-back">← Kembali ke Dashboard</a>
+    <?php else: ?>
+        <a href="../index.php" class="btn-back">← Kembali ke Beranda</a>
+    <?php endif; ?>
+
 
 </div>
 
