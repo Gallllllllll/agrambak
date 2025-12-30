@@ -16,8 +16,28 @@ $user->execute([$id]);
 $user = $user->fetch();
 
 $riwayat = $pdo->prepare("
-    SELECT r.kode_booking, r.total_harga, r.status, r.waktu_pesan
+    SELECT 
+        r.kode_booking,
+        r.total_harga,
+        r.waktu_pesan,
+
+        p.status AS pembayaran_status,
+        r.waktu_checkin,
+        b.status AS refund_status
+
     FROM reservasi r
+
+    LEFT JOIN pembayaran p 
+        ON p.reservasi_id = r.reservasi_id
+        AND p.waktu_bayar = (
+            SELECT MAX(waktu_bayar)
+            FROM pembayaran
+            WHERE reservasi_id = r.reservasi_id
+        )
+
+    LEFT JOIN pembatalan b
+        ON b.reservasi_id = r.reservasi_id
+
     WHERE r.user_id=?
     ORDER BY r.waktu_pesan DESC
 ");
@@ -32,8 +52,8 @@ $riwayat->execute([$id]);
     <link rel="icon" href="../../aset/img/logo-tranzio2.png" type="image/x-icon">
 
     <!-- CSS GLOBAL -->
-    <link rel="stylesheet" href="/agrambak/aset/css/dashboard_admin.css">
-    <link rel="stylesheet" href="/agrambak/aset/css/users_admin.css">
+    <link rel="stylesheet" href="../../aset/css/dashboard_admin.css">
+    <link rel="stylesheet" href="../../aset/css/users_admin.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
     
@@ -113,14 +133,33 @@ $riwayat->execute([$id]);
                     </thead>
                     <tbody>
                     <?php foreach ($riwayat as $r): ?>
+                        <?php
+                        $statusText = 'Gagal';
+                        $badgeClass = 'secondary';
+
+                        if (!empty($r['refund_status']) && $r['refund_status'] === 'Disetujui') {
+                            $statusText = 'Refund Disetujui';
+                            $badgeClass = 'warning';
+
+                        } elseif (!empty($r['waktu_checkin'])) {
+                            $statusText = 'Sudah Check-In';
+                            $badgeClass = 'info';
+
+                        } elseif ($r['pembayaran_status'] === 'berhasil') {
+                            $statusText = 'Lunas';
+                            $badgeClass = 'success';
+
+                        } elseif ($r['pembayaran_status'] === 'pending') {
+                            $statusText = 'Menunggu';
+                            $badgeClass = 'warning';
+                        }
+                        ?>
                         <tr>
                             <td><?= htmlspecialchars($r['kode_booking']) ?></td>
                             <td>Rp<?= number_format($r['total_harga'], 0, ',', '.') ?></td>
                             <td>
-                                <span class="badge 
-                                    <?= $r['status']=='berhasil'?'bg-success':
-                                    ($r['status']=='pending'?'bg-warning':'bg-secondary') ?>">
-                                    <?= ucfirst($r['status']) ?>
+                                <span class="badge bg-<?= $badgeClass ?>">
+                                    <?= $statusText ?>
                                 </span>
                             </td>
                             <td><?= date('d M Y H:i', strtotime($r['waktu_pesan'])) ?></td>

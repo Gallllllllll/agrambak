@@ -36,8 +36,8 @@ $user = $user->fetch();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <!-- CSS GLOBAL -->
-    <link rel="stylesheet" href="/agrambak/aset/css/dashboard_admin.css">
-    <link rel="stylesheet" href="/agrambak/aset/css/users_admin.css">
+    <link rel="stylesheet" href="../../aset/css/dashboard_admin.css">
+    <link rel="stylesheet" href="../../aset/css/users_admin.css">
     <link rel="icon" href="../../aset/img/logo-tranzio2.png" type="image/x-icon">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">

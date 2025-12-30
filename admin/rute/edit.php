@@ -76,7 +76,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link rel="icon" href="../../aset/img/logo-tranzio2.png" type="image/x-icon">
 
     <!-- CSS -->
-    <link rel="stylesheet" href="/agrambak/aset/css/dashboard_admin.css">
+    <link rel="stylesheet" href="../../aset/css/dashboard_admin.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css">
 </head>
