@@ -110,7 +110,7 @@ $rutes = $pdo->query("
                     </td>
                     <td>
                         <a href="edit.php?id=<?= $r['rute_id'] ?>" class="btn btn-sm btn-outline-warning">Edit</a>
-                        <a href="delete.php?id=<?= $r['rute_id'] ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('Yakin ingin hapus rute ini?')">Hapus</a>
+                        <a href="hapus.php?id=<?= $r['rute_id'] ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('Yakin ingin hapus rute ini?')">Hapus</a>
                     </td>
                 </tr>
                 <?php endforeach; ?>
