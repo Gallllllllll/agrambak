@@ -91,7 +91,7 @@ if (isset($_SESSION['user']) && is_array($_SESSION['user'])) {
     include "nav.php";
 } else {
     // Guest / belum login
-    include "../navguest.php";
+    include "../navguestblog.php";
 }
 ?>
 
