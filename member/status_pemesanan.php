@@ -124,6 +124,38 @@ $stmt = $pdo->prepare("
 ");
 $stmt->execute([$user['user_id']]);
 $reservasi = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// =====================
+// RINGKASAN STATUS
+// =====================
+$summary = [
+    'gagal' => 0,
+    'lunas' => 0,
+    'checkin' => 0,
+    'refund' => 0
+];
+
+if ($reservasi) {
+    foreach ($reservasi as $r) {
+
+        if (!empty($r['refund_status']) && $r['refund_status'] === 'Disetujui') {
+            $summary['refund']++;
+        } elseif (!empty($r['waktu_checkin'])) {
+            $summary['checkin']++;
+        } elseif ($r['pembayaran_status'] === 'berhasil') {
+            $summary['lunas']++;
+        } else {
+            $summary['gagal']++;
+        }
+    }
+}
+
+$total = array_sum($summary);
+function percent($value, $total) {
+    if ($total == 0) return 0;
+    return round(($value / $total) * 100);
+}
+
 ?>
 
 <!DOCTYPE html>
@@ -135,6 +167,8 @@ $reservasi = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <link rel="stylesheet" href="../aset/css/nav.css">
 <link rel="stylesheet" href="../aset/css/footer.css">
 <link rel="icon" href="../aset/img/logo-tranzio2.png" type="image/x-icon">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
 
 <style>
 * { box-sizing: border-box; }
@@ -291,6 +325,84 @@ body {
     color: #777;
 }
 
+/* ===== SUMMARY ===== */
+.summary-box {
+    background: #fff;
+    border-radius: 18px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 8px 20px rgba(0,0,0,.15);
+}
+
+.summary-title {
+    font-weight: 600;
+    margin-bottom: 12px;
+}
+
+.summary-item {
+    margin-bottom: 10px;
+}
+
+.summary-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    margin-bottom: 4px;
+}
+
+.summary-bar {
+    height: 8px;
+    background: #e0e0e0;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.summary-fill {
+    height: 100%;
+    border-radius: 10px;
+}
+/* ===== SUMMARY HORIZONTAL ===== */
+.summary-item.horizontal {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 14px;
+}
+
+.summary-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 110px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #2f405a;
+}
+
+.summary-left i {
+    font-size: 16px;
+}
+
+/* warna icon */
+.icon-gagal { color: #eb5757; }
+.icon-lunas { color: #6fcf97; }
+.icon-checkin { color: #3498db; }
+.icon-refund { color: #f2994a; }
+
+.summary-right {
+    flex: 1;
+}
+
+.summary-right small {
+    font-size: 12px;
+    color: #777;
+}
+
+.fill-gagal { background: #eb5757; }
+.fill-lunas { background: #6fcf97; }
+.fill-checkin { background: #3498db; }
+.fill-refund { background: #f2994a; }
+
 /* ===== RESPONSIVE ===== */
 @media (max-width: 600px) {
     .ticket-header {
@@ -315,12 +427,70 @@ body {
 
 <div class="container">
 
-<h2 style="color:white;">Tiket Saya</h2>
+<h1 style="color:white; text-align:center;">Tiket Saya</h1>
+<?php if ($total > 0): ?>
+<div class="summary-box">
+<div class="summary-item horizontal">
+    <div class="summary-left">
+        <i class="fa-solid fa-circle-xmark icon-gagal"></i>
+        <span>Gagal</span>
+    </div>
+    <div class="summary-right">
+        <div class="summary-bar">
+            <div class="summary-fill fill-gagal" style="width:<?= percent($summary['gagal'],$total) ?>%"></div>
+        </div>
+        <small><?= $summary['gagal'] ?> tiket</small>
+    </div>
+</div>
+
+<div class="summary-item horizontal">
+    <div class="summary-left">
+        <i class="fa-solid fa-circle-check icon-lunas"></i>
+        <span>Lunas</span>
+    </div>
+    <div class="summary-right">
+        <div class="summary-bar">
+            <div class="summary-fill fill-lunas" style="width:<?= percent($summary['lunas'],$total) ?>%"></div>
+        </div>
+        <small><?= $summary['lunas'] ?> tiket</small>
+    </div>
+</div>
+
+<div class="summary-item horizontal">
+    <div class="summary-left">
+        <i class="fa-solid fa-location-dot icon-checkin"></i>
+        <span>Check-In</span>
+    </div>
+    <div class="summary-right">
+        <div class="summary-bar">
+            <div class="summary-fill fill-checkin" style="width:<?= percent($summary['checkin'],$total) ?>%"></div>
+        </div>
+        <small><?= $summary['checkin'] ?> tiket</small>
+    </div>
+</div>
+
+<div class="summary-item horizontal">
+    <div class="summary-left">
+        <i class="fa-solid fa-rotate-left icon-refund"></i>
+        <span>Refund</span>
+    </div>
+    <div class="summary-right">
+        <div class="summary-bar">
+            <div class="summary-fill fill-refund" style="width:<?= percent($summary['refund'],$total) ?>%"></div>
+        </div>
+        <small><?= $summary['refund'] ?> tiket</small>
+    </div>
+</div>
+</div>
+<?php endif; ?>
+
+<?php if ($total > 0): ?>
 <button class="btn btn-checkin" 
         style="width:100%; margin-bottom:25px; padding:14px; font-size:16px;"
         onclick="openCheckinModal()">
     Check-In Tiket
 </button>
+<?php endif; ?>
 
 <?php if ($message): ?>
     <div class="alert"><?= htmlspecialchars($message) ?></div>
