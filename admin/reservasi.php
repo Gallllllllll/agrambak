@@ -11,16 +11,48 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'admin') {
 /* =======================
    AMBIL DATA RESERVASI
 ======================= */
+
 $stmt = $pdo->query("
-    SELECT r.reservasi_id, r.kode_booking, r.jumlah_kursi, r.total_harga, r.status, r.waktu_pesan,
-           u.nama AS nama_user, j.tanggal, j.jam_berangkat, j.jam_tiba, ba.nama_bus
+    SELECT 
+        r.reservasi_id,
+        r.kode_booking,
+        r.jumlah_kursi,
+        r.total_harga,
+        r.waktu_pesan,
+
+        u.nama AS nama_user,
+
+        j.tanggal,
+        j.jam_berangkat,
+        j.jam_tiba,
+
+        ba.nama_bus,
+
+        p.status AS pembayaran_status,
+        r.waktu_checkin,
+        b.status AS refund_status
+
     FROM reservasi r
     JOIN users u ON r.user_id = u.user_id
     JOIN jadwal j ON r.jadwal_id = j.jadwal_id
     JOIN bus_armada ba ON j.armada_id = ba.armada_id
+
+    LEFT JOIN pembayaran p 
+        ON p.reservasi_id = r.reservasi_id
+        AND p.waktu_bayar = (
+            SELECT MAX(waktu_bayar)
+            FROM pembayaran
+            WHERE reservasi_id = r.reservasi_id
+        )
+
+    LEFT JOIN pembatalan b 
+        ON b.reservasi_id = r.reservasi_id
+
     ORDER BY r.waktu_pesan DESC
 ");
+
 $reservasis = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
 ?>
 
 <!DOCTYPE html>
@@ -75,6 +107,27 @@ $reservasis = $stmt->fetchAll(PDO::FETCH_ASSOC);
             </thead>
             <tbody>
                 <?php foreach ($reservasis as $r): ?>
+                <?php
+                    $statusText  = 'Gagal';
+                    $badgeClass  = 'secondary';
+
+                    if (!empty($r['refund_status']) && $r['refund_status'] === 'Disetujui') {
+                        $statusText = 'Refund Disetujui';
+                        $badgeClass = 'warning';
+
+                    } elseif (!empty($r['waktu_checkin'])) {
+                        $statusText = 'Sudah Check-In';
+                        $badgeClass = 'info';
+
+                    } elseif ($r['pembayaran_status'] === 'berhasil') {
+                        $statusText = 'Lunas';
+                        $badgeClass = 'success';
+
+                    } elseif ($r['pembayaran_status'] === 'pending') {
+                        $statusText = 'Menunggu';
+                        $badgeClass = 'warning';
+                    }
+                ?>
                 <tr>
                     <td><?= htmlspecialchars($r['kode_booking']) ?></td>
                     <td><?= htmlspecialchars($r['nama_user']) ?></td>
@@ -86,8 +139,8 @@ $reservasis = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     <td><?= $r['jumlah_kursi'] ?></td>
                     <td>Rp <?= number_format($r['total_harga'], 0, ',', '.') ?></td>
                     <td>
-                        <span class="badge bg-<?= $r['status'] === 'PAID' ? 'success' : ($r['status'] === 'PENDING' ? 'warning' : 'secondary') ?>">
-                            <?= htmlspecialchars($r['status']) ?>
+                        <span class="badge bg-<?= $badgeClass ?>">
+                            <?= $statusText ?>
                         </span>
                     </td>
                     <td><?= $r['waktu_pesan'] ?></td>
